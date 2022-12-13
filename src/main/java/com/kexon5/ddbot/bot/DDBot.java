@@ -1,6 +1,8 @@
 package com.kexon5.ddbot.bot;
 
 import com.kexon5.ddbot.exceptions.IllegalTimeInput;
+import com.kexon5.ddbot.util.Keyboards;
+import com.kexon5.ddbot.util.Reminder;
 import com.kexon5.ddbot.util.TimeUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -8,15 +10,20 @@ import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageReplyMarkup;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboard;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
+import java.util.Map;
 import java.util.TimerTask;
 
 @Slf4j
@@ -24,21 +31,21 @@ import java.util.TimerTask;
 public class DDBot extends TelegramLongPollingBot {
     private static final int RECONNECT_PAUSE = 10_000;
     private static final int SEC_IN_MIN = 60;
-    private final static InlineKeyboardButton ONE_MIN_BUTTON = InlineKeyboardButton.builder().text("1 мин")
-            .callbackData("1 min").build();
-    private final static InlineKeyboardButton THIRTY_SEC_BUTTON = InlineKeyboardButton.builder().text("30 сек")
-            .callbackData("30 sec").build();
-    private final static InlineKeyboardMarkup MAIN_KEYBOARD = InlineKeyboardMarkup.builder()
-            .keyboardRow(List.of(ONE_MIN_BUTTON, THIRTY_SEC_BUTTON)).build();
     private final static String MAIN_MENU_TEXT = "Выберите время, либо введите самостоятельно, " +
             "используя символы: с - секунды, м - минуты, ч - часы. Пример ввода: 2ч 35м 33с; 35c; 7м 2с";
-    private final static String TIMER_OUT_TEXT = "Время таймера вышло";
+    private final static String TIMER_OUT_TEXT = """
+            ➡ Не забудь взять с собой паспорт
+            ➡ Перед сдачей крови не делай что-то
+            ➡ Тут мы скинем тебе навигацию больнички
+            ➡ Прочая полезная информация, я хз, что тут надо писать, я кровь не сдавал
+            """;
     private final static String TIMER_STARTED = "Таймер успешно заведен";
-    private final static  String WRONG_TIME_INPUT = "Временной промежуток введен в неверном формате. " +
-            "Попробуйте еще раз, используя символы: с - секунды, м - минуты, ч - часы. Пример ввода: 2ч 35м 33с; 35c; 7м 2с";
+    private final static  String WRONG_TIME_INPUT = "Временной промежуток введен в неверном формате, попробуйте еще раз";
+    private final static String TIMER_IS_ADDED = "Таймер добавлен";
 
     private final String botUsername;
     private final String botToken;
+    private final Map<Long, List<Reminder>> reminders = new HashMap<>();
 
     public DDBot(TelegramBotsApi telegramBotsApi, String botUsername, String botToken) {
         this.botUsername = botUsername;
@@ -49,38 +56,68 @@ public class DDBot extends TelegramLongPollingBot {
 
     @Override
     public void onUpdateReceived(Update update) {
-        Long chatId = null;
-
         try {
-            if (update.hasCallbackQuery()) {
-                chatId = update.getCallbackQuery().getMessage().getChatId();
+            if (update.hasMessage()) {
+                Long chatId = update.getMessage().getChatId();
 
-                switch (update.getCallbackQuery().getData()) {
-                    case "1 min" -> reminder(chatId, SEC_IN_MIN);
-                    case "30 sec" -> reminder(chatId, 30);
+                if (update.getMessage().isCommand()) {
+                    sendMsgWithKeyboard(chatId, MAIN_MENU_TEXT, Keyboards.MAIN_MENU);
+                } else {
+                    startReminder(chatId, TimeUtil.parseStringTimeToIntSec(update.getMessage().getText()));
+                    sendMsgWithKeyboard(chatId, TIMER_STARTED, Keyboards.SUCCESS_TIMER_MENU);
                 }
-
-                execute(AnswerCallbackQuery.builder()
-                        .callbackQueryId(update.getCallbackQuery().getId())
-                        .build());
             } else {
-                chatId = update.getMessage().getChatId();
+                Long chatId = update.getCallbackQuery().getFrom().getId();
+                Integer msgId = update.getCallbackQuery().getMessage().getMessageId();
+                String data = update.getCallbackQuery().getData();
 
-                if (!update.getMessage().getText().equals("/start")) {
-                    reminder(chatId, TimeUtil.parseStringTimeToIntSec(update.getMessage().getText()));
+                switch (data) {
+                    case "mainMenu" -> editMsg(chatId, msgId, MAIN_MENU_TEXT, Keyboards.MAIN_MENU);
+                    case "1min" -> {
+                        startReminder(chatId, SEC_IN_MIN);
+                        editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
+                    }
+                    case "30sec" -> {
+                        startReminder(chatId, 30);
+                        editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
+                    }
+                    case "reminders" -> {
+                        StringBuilder text = new StringBuilder();
+
+                        if (reminders.get(chatId) == null || reminders.get(chatId).isEmpty()) {
+                            text.append("Нет активных таймеров");
+                            editMsg(chatId, msgId, text.toString(), Keyboards.TO_MAIN_MENU);
+                        } else {
+                            text.append("Список активных таймеров:");
+                            for (int i = 0; i < reminders.get(chatId).size(); i++) {
+                                text.append(String.format("%n%d. Таймер на %s", i + 1
+                                        , reminders.get(chatId).get(i).toString()));
+                            }
+                            editMsg(chatId, msgId, text.toString(), Keyboards.LIST_TIMERS_MENU);
+                        }
+                    }
+                    case "stopTimer" -> {
+                        InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder = InlineKeyboardMarkup.builder();
+
+                        for (int i = 0; i < reminders.get(chatId).size(); i++) {
+                            markupBuilder.keyboardRow(List.of(InlineKeyboardButton.builder()
+                                    .text("Остановить таймер №" + (i + 1)).callbackData(String.valueOf(i)).build()));
+                        }
+                        execute(EditMessageReplyMarkup.builder().chatId(chatId).messageId(msgId)
+                                .replyMarkup(markupBuilder.build()).build());
+                    }
+                    default -> {
+                        stopReminder(chatId, Integer.parseInt(data));
+                        editMsg(chatId, msgId, "Таймер удален", Keyboards.TIMER_WAS_DELETED);
+                    }
                 }
+                execute(AnswerCallbackQuery.builder().callbackQueryId(update.getCallbackQuery().getId()).build());
             }
-
-            execute(SendMessage.builder()
-                    .text(MAIN_MENU_TEXT)
-                    .chatId(chatId)
-                    .replyMarkup(MAIN_KEYBOARD)
-                    .build());
         } catch (TelegramApiException e) {
             log.error("Request handle error: ", e);
         } catch (IllegalTimeInput e) {
             try {
-                sendMsg(WRONG_TIME_INPUT, chatId);
+                sendMsgWithKeyboard(update.getMessage().getChatId(), WRONG_TIME_INPUT, Keyboards.MAIN_MENU);
             } catch (TelegramApiException ex) {
                 log.error("Request handle error: ", e);
             }
@@ -106,23 +143,44 @@ public class DDBot extends TelegramLongPollingBot {
     }
 
     private void sendMsg(String text, Long chatId) throws TelegramApiException {
-        execute(SendMessage.builder()
-                .text(text)
-                .chatId(chatId)
-                .build());
+        execute(SendMessage.builder().text(text).chatId(chatId).build());
     }
 
-    private void reminder(Long chatId, int periodInSec) throws TelegramApiException {
-        sendMsg(TIMER_STARTED, chatId);
-        new Timer().schedule(new TimerTask() {
+    private void sendMsgWithKeyboard(Long chatId, String text, ReplyKeyboard keyboard) throws TelegramApiException {
+        execute(SendMessage.builder().chatId(chatId).text(text).replyMarkup(keyboard).build());
+    }
+
+    private void editMsg (Long chatId, Integer msgId, String text, InlineKeyboardMarkup keyboard) throws TelegramApiException {
+        execute(EditMessageText.builder().chatId(chatId).messageId(msgId).text(text).build());
+        execute(EditMessageReplyMarkup.builder().chatId(chatId).messageId(msgId).replyMarkup(keyboard).build());
+    }
+
+    private void startReminder(Long chatId, int periodInSec) {
+        Date date = Date.from(Instant.now().plusSeconds(periodInSec));
+        Reminder reminder = new Reminder(date);
+        List<Reminder> reminderList = reminders.get(chatId);
+
+        reminder.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
                     sendMsg(TIMER_OUT_TEXT, chatId);
+                    reminders.get(chatId).remove(reminder);
                 } catch (TelegramApiException e) {
                     log.error("Request handle error: ", e);
                 }
             }
-        }, Date.from(Instant.now().plusSeconds(periodInSec)));
+        }, date);
+
+        if (reminderList == null) {
+            reminderList = new ArrayList<>();
+        }
+        reminderList.add(reminder);
+        reminders.put(chatId, reminderList);
+    }
+
+    private void stopReminder(Long chatId, int timerId) {
+        reminders.get(chatId).get(timerId).cancel();
+        reminders.get(chatId).remove(timerId);
     }
 }
