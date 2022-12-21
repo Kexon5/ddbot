@@ -11,7 +11,7 @@ import java.util.Timer;
 @AllArgsConstructor
 public class Reminder extends Timer {
     private Date detonationDate;
-    private final SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss");
+    private final SimpleDateFormat formatter = new SimpleDateFormat("hh:mm:ss dd/MM/yyyy");
 
     @Override
     public String toString() {

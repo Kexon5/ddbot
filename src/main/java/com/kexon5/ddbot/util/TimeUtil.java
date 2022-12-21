@@ -10,12 +10,13 @@ public class TimeUtil {
 
     public static int parseStringTimeToIntSec(String text) throws IllegalTimeInput {
         int sec = 0;
-        List<String> timeIntervals =List.of(text.split(" "));
 
-        if (!text.toLowerCase().matches("(([1-9]|1\\d|2[0-4])ч)?(([1-9]|[1-5]\\d|60)м)?(([1-9]|[1-5]\\d|60)с)?")
+        if (!text.toLowerCase().matches("(([1-9]|1\\d|2[0-4])ч\s*)?(([1-9]|[1-5]\\d|60)м\s*)?(([1-9]|[1-5]\\d|60)с)?")
                 || text.isBlank()) {
             throw new IllegalTimeInput("Неверный формат ввода времени");
         }
+
+        List<String> timeIntervals = List.of(text.split(" "));
 
         for (String interval : timeIntervals) {
             long digits = Long.parseLong(interval.substring(0, interval.length() - 1));

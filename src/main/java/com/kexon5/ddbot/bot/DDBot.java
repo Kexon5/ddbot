@@ -1,7 +1,6 @@
 package com.kexon5.ddbot.bot;
 
 import com.kexon5.ddbot.exceptions.IllegalTimeInput;
-import com.kexon5.ddbot.util.Keyboards;
 import com.kexon5.ddbot.util.Reminder;
 import com.kexon5.ddbot.util.TimeUtil;
 import lombok.Getter;
@@ -31,6 +30,8 @@ import java.util.TimerTask;
 public class DDBot extends TelegramLongPollingBot {
     private static final int RECONNECT_PAUSE = 10_000;
     private static final int SEC_IN_MIN = 60;
+    private static final int SEC_IN_HOUR = 3600;
+    public static final int SEC_BEFORE_RESCHEDULE = 60;
     private final static String MAIN_MENU_TEXT = "Выберите время, либо введите самостоятельно, " +
             "используя символы: с - секунды, м - минуты, ч - часы. Пример ввода: 2ч 35м 33с; 35c; 7м 2с";
     private final static String TIMER_OUT_TEXT = """
@@ -39,7 +40,6 @@ public class DDBot extends TelegramLongPollingBot {
             ➡ Тут мы скинем тебе навигацию больнички
             ➡ Прочая полезная информация, я хз, что тут надо писать, я кровь не сдавал
             """;
-    private final static String TIMER_STARTED = "Таймер успешно заведен";
     private final static  String WRONG_TIME_INPUT = "Временной промежуток введен в неверном формате, попробуйте еще раз";
     private final static String TIMER_IS_ADDED = "Таймер добавлен";
 
@@ -64,53 +64,52 @@ public class DDBot extends TelegramLongPollingBot {
                     sendMsgWithKeyboard(chatId, MAIN_MENU_TEXT, Keyboards.MAIN_MENU);
                 } else {
                     startReminder(chatId, TimeUtil.parseStringTimeToIntSec(update.getMessage().getText()));
-                    sendMsgWithKeyboard(chatId, TIMER_STARTED, Keyboards.SUCCESS_TIMER_MENU);
+                    sendMsgWithKeyboard(chatId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
                 }
             } else {
                 Long chatId = update.getCallbackQuery().getFrom().getId();
                 Integer msgId = update.getCallbackQuery().getMessage().getMessageId();
                 String data = update.getCallbackQuery().getData();
 
-                switch (data) {
-                    case "mainMenu" -> editMsg(chatId, msgId, MAIN_MENU_TEXT, Keyboards.MAIN_MENU);
-                    case "1min" -> {
-                        startReminder(chatId, SEC_IN_MIN);
-                        editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
-                    }
-                    case "30sec" -> {
-                        startReminder(chatId, 30);
-                        editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
-                    }
-                    case "reminders" -> {
-                        StringBuilder text = new StringBuilder();
+                if (data.equals(QueryCallback.MAIN_MENU.getData())) {
+                    editMsg(chatId, msgId, MAIN_MENU_TEXT, Keyboards.MAIN_MENU);
+                } else if (data.equals(QueryCallback.ONE_MIN.getData())) {
+                    startReminder(chatId, SEC_IN_MIN);
+                    editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
+                } else if (data.equals(QueryCallback.THIRTY_SEC.getData())) {
+                    startReminder(chatId, 30);
+                    editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
+                } else if (data.equals(QueryCallback.ONE_HOUR.getData())) {
+                    startReminder(chatId, SEC_IN_HOUR);
+                    editMsg(chatId, msgId, TIMER_IS_ADDED, Keyboards.SUCCESS_TIMER_MENU);
+                } else if (data.equals(QueryCallback.LIST_OF_REMINDERS.getData())) {
+                    StringBuilder text = new StringBuilder();
 
-                        if (reminders.get(chatId) == null || reminders.get(chatId).isEmpty()) {
-                            text.append("Нет активных таймеров");
-                            editMsg(chatId, msgId, text.toString(), Keyboards.TO_MAIN_MENU);
-                        } else {
-                            text.append("Список активных таймеров:");
-                            for (int i = 0; i < reminders.get(chatId).size(); i++) {
-                                text.append(String.format("%n%d. Таймер на %s", i + 1
-                                        , reminders.get(chatId).get(i).toString()));
-                            }
-                            editMsg(chatId, msgId, text.toString(), Keyboards.LIST_TIMERS_MENU);
-                        }
-                    }
-                    case "stopTimer" -> {
-                        InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder = InlineKeyboardMarkup.builder();
-
+                    if (reminders.get(chatId) == null || reminders.get(chatId).isEmpty()) {
+                        text.append("Нет активных таймеров");
+                        editMsg(chatId, msgId, text.toString(), Keyboards.TO_MAIN_MENU);
+                    } else {
+                        text.append("Список активных таймеров:");
                         for (int i = 0; i < reminders.get(chatId).size(); i++) {
-                            markupBuilder.keyboardRow(List.of(InlineKeyboardButton.builder()
-                                    .text("Остановить таймер №" + (i + 1)).callbackData(String.valueOf(i)).build()));
+                            text.append(String.format("%n%d. Таймер на %s", i + 1
+                                    , reminders.get(chatId).get(i).toString()));
                         }
-                        execute(EditMessageReplyMarkup.builder().chatId(chatId).messageId(msgId)
-                                .replyMarkup(markupBuilder.build()).build());
+                        editMsg(chatId, msgId, text.toString(), Keyboards.LIST_TIMERS_MENU);
                     }
-                    default -> {
-                        stopReminder(chatId, Integer.parseInt(data));
-                        editMsg(chatId, msgId, "Таймер удален", Keyboards.TIMER_WAS_DELETED);
+                } else if (data.equals(QueryCallback.STOP_TIMER.getData())) {
+                    InlineKeyboardMarkup.InlineKeyboardMarkupBuilder markupBuilder = InlineKeyboardMarkup.builder();
+
+                    for (int i = 0; i < reminders.get(chatId).size(); i++) {
+                        markupBuilder.keyboardRow(List.of(InlineKeyboardButton.builder()
+                                .text("Остановить таймер №" + (i + 1)).callbackData(String.valueOf(i)).build()));
                     }
+                    execute(EditMessageReplyMarkup.builder().chatId(chatId).messageId(msgId)
+                            .replyMarkup(markupBuilder.build()).build());
+                } else {
+                    stopReminder(chatId, Integer.parseInt(data));
+                    editMsg(chatId, msgId, "Таймер удален", Keyboards.TIMER_WAS_DELETED);
                 }
+
                 execute(AnswerCallbackQuery.builder().callbackQueryId(update.getCallbackQuery().getId()).build());
             }
         } catch (TelegramApiException e) {
@@ -155,22 +154,22 @@ public class DDBot extends TelegramLongPollingBot {
         execute(EditMessageReplyMarkup.builder().chatId(chatId).messageId(msgId).replyMarkup(keyboard).build());
     }
 
-    private void startReminder(Long chatId, int periodInSec) {
-        Date date = Date.from(Instant.now().plusSeconds(periodInSec));
-        Reminder reminder = new Reminder(date);
+    private void startReminder(Long chatId, int timePeriod) {
+        Date execDate = Date.from(Instant.now().plusSeconds(timePeriod));
+        Reminder reminder = new Reminder(execDate);
         List<Reminder> reminderList = reminders.get(chatId);
 
         reminder.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    sendMsg(TIMER_OUT_TEXT, chatId);
+                    sendMsgWithKeyboard(chatId, TIMER_OUT_TEXT, Keyboards.REMINDER);
                     reminders.get(chatId).remove(reminder);
                 } catch (TelegramApiException e) {
                     log.error("Request handle error: ", e);
                 }
             }
-        }, date);
+        }, execDate);
 
         if (reminderList == null) {
             reminderList = new ArrayList<>();
