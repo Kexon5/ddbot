@@ -1,8 +1,7 @@
-src/main/resources/application.properties
-
 out/
 .idea/
 .idea_modules/
+!.idea/runConfigurations/
 *.iml
 *.ipr
 *.iws
@@ -16,3 +15,5 @@ out/
 hs_err_pid*
 
 target/
+src/main/resources/
+!src/main/resources/application.properties
