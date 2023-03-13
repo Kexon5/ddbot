@@ -6,8 +6,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.1</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <version>3.0.4</version>
+        <relativePath/>
     </parent>
 
     <groupId>com.kexon5</groupId>
@@ -18,35 +18,57 @@
 
     <properties>
         <java.version>18</java.version>
+
         <telegrambots.version>6.3.0</telegrambots.version>
+        <google-api.version>1.32.1</google-api.version>
+        <google-api.drive.version>v3-rev20211107-1.32.1</google-api.drive.version>
+        <google-api.sheet.version>v4-rev20221216-2.0.0</google-api.sheet.version>
+        <lombok.version>1.18.10</lombok.version>
     </properties>
 
 
     <dependencies>
-        <!--	SPRING	-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
-        </dependency>
+        <!--   SPRING	-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.statemachine</groupId>
+            <artifactId>spring-statemachine-starter</artifactId>
+            <version>3.2.0</version>
+        </dependency>
 
 
-        <!-- TELEGRAM -->
+        <!--   TELEGRAM   -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
             <version>${telegrambots.version}</version>
         </dependency>
 
-        <!--	3RD PARTY	-->
+        <!--   GOOGLE   -->
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-drive</artifactId>
+            <version>${google-api.drive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-sheets</artifactId>
+            <version>${google-api.sheet.version}</version>
+        </dependency>
+
+        <!--   3RD PARTY	-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.10</version>
+            <version>${lombok.version}</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -59,5 +81,24 @@
             </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>spring-snapshots</id>
+            <name>Spring Snapshots</name>
+            <url>https://repo.spring.io/snapshot</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>spring-milestones</id>
+            <name>Spring Milestones</name>
+            <url>https://repo.spring.io/milestone</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
 </project>
