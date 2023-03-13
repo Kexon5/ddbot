@@ -21,7 +21,6 @@ public class BotConfiguration  {
     @Bean(initMethod = "init")
     public DDBot ddBot(TelegramBotsApi telegramBotsApi,
                        StateMachine<BotState, Integer> stateMachine,
-
                        @Value("${bot.username}") String botName,
                        @Value("${bot.token}") String botToken) {
         DDBot bot = new DDBot(stateMachine, botName, botToken);
