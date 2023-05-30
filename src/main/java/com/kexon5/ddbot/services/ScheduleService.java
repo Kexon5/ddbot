@@ -1,20 +1,27 @@
 package com.kexon5.ddbot.services;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.kexon5.ddbot.models.User;
 import com.kexon5.ddbot.models.google.GoogleSetting;
 import com.kexon5.ddbot.models.hospital.Hospital;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.repositories.HospitalRecordRepository;
 import com.kexon5.ddbot.repositories.HospitalRepository;
-import com.kexon5.ddbot.utils.Utils;
+import com.kexon5.ddbot.repositories.UserRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.bson.types.ObjectId;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.kexon5.ddbot.models.hospital.Hospital.getSimpleStringList;
@@ -29,17 +36,42 @@ public class ScheduleService {
     private final HospitalRepository hospitalRepository;
     private final HospitalRecordRepository hospitalRecordRepository;
 
+    private final UserRepository userRepository;
+
+    private final ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
+
+    public void init() {
+        executorService.schedule(() -> {
+            List<HospitalRecord> records = hospitalRecordRepository.findAllByStateEquals(HospitalRecord.RecordState.CLOSED).stream()
+                    .filter(record -> record.getDate().isBefore(LocalDateTime.now()))
+                    .toList();
+
+            List<User> usersList = records.stream()
+                                          .peek(rec -> rec.setState(HospitalRecord.RecordState.OUTDATED))
+                                          .map(HospitalRecord::getUsers)
+                                          .flatMap(users -> userRepository.findAllById(users).stream())
+                                          .peek(user -> user.setActiveRecord(null))
+                                          .toList();
+
+            userRepository.saveAll(usersList);
+            hospitalRecordRepository.saveAll(records);
+        }, 1, TimeUnit.DAYS);
+    }
+
     @Getter
     private GoogleSetting lastSchedule;
+
+    private static long getDaysBetween(LocalDate first, LocalDate second) {
+        return Duration.between(first.atStartOfDay(), second.atStartOfDay()).toDays();
+    }
 
     public GoogleSetting getSchedule() {
         if (lastSchedule != null) return lastSchedule;
 
         LocalDate date = LocalDate.now();
 
-        long daysToSpringAct = Utils.getDaysBetween(date, LocalDate.of(date.getYear(), MONTH_FOR_SPRING_EVENT, 1));
-        long daysToFallAct = Utils.getDaysBetween(date, LocalDate.of(date.getYear(), MONTH_FOR_FALL_EVENT, 1));
-        String dirName = (daysToSpringAct < daysToFallAct ? "Весна'" : "Осень'") + date.getYear() % 100;
+        long daysToSpringAct = getDaysBetween(date, LocalDate.of(date.getYear(), MONTH_FOR_SPRING_EVENT, 1));
+        String dirName = (daysToSpringAct > 0 ? "Весна'" : "Осень'") + date.getYear() % 100;
         String fileName = "Расписание выездов " + dirName;
 
         lastSchedule = Optional.ofNullable(googleSettingsService.getGoogleSetting(fileName)).orElseGet(() -> {
@@ -49,6 +81,39 @@ public class ScheduleService {
         });
 
         return lastSchedule;
+    }
+
+    public boolean existOpenRecords() {
+        return hospitalRecordRepository.existsHospitalRecordByStateEquals(HospitalRecord.RecordState.OPEN);
+    }
+
+
+    public void userAction(long userId, Consumer<User> consumer) {
+        User user = userRepository.findByUserId(userId);
+        consumer.accept(user);
+        userRepository.save(user);
+    }
+
+    public void deleteAllByDateBetween(LocalDateTime date1, LocalDateTime date2) {
+        hospitalRecordRepository.deleteAllByDateBetween(date1, date2);
+    }
+
+    public List<User> findAllById(Iterable<ObjectId> ids) {
+        return userRepository.findAllById(ids);
+    }
+
+    public void checkOutUser(HospitalRecord record, long userId) {
+        userAction(userId, user -> {
+            record.removeUser(user);
+            saveRecord(record);
+        });
+    }
+
+    public void checkInUser(HospitalRecord record, long userId) {
+        userAction(userId, user -> {
+            record.addUser(user);
+            saveRecord(record);
+        });
     }
 
     public void fillSchedule(GoogleSetting fileSetting) {
@@ -83,6 +148,10 @@ public class ScheduleService {
         return List.of(hospitalNames, contacts, requiredDocuments, notes);
     }
 
+    public List<HospitalRecord> findAllRecords(LocalDateTime date1, LocalDateTime date2) {
+        return hospitalRecordRepository.findAllByDateBetween(date1, date2);
+    }
+
     public void saveRecords(List<HospitalRecord> records) {
         hospitalRecordRepository.saveAll(records);
     }
@@ -95,17 +164,17 @@ public class ScheduleService {
         return hospitalRepository.findAll();
     }
 
-    public List<HospitalRecord> getAllRecords() {
-        return hospitalRecordRepository.findAll();
+    public List<HospitalRecord> getAllRecords(HospitalRecord.RecordState state) {
+        return hospitalRecordRepository.findAllByStateEquals(state);
     }
 
     public boolean userHasActiveRecord(long userId) {
-        LocalDateTime date = LocalDateTime.of(2023, 2, 1, 0, 0);
-        return hospitalRecordRepository.existsHospitalRecordByDateBetweenAndUsersContains(date, date.plusMonths(1), List.of(userId));
+        return userRepository.findByUserId(userId).getActiveRecord() != null;
     }
 
     public HospitalRecord getUserActiveRecord(long userId) {
-        LocalDateTime date = LocalDateTime.of(2023, 2, 1, 0, 0);
-        return hospitalRecordRepository.findFirstByDateBetweenAndUsersContains(date, date.plusMonths(1), List.of(userId));
+        return Optional.ofNullable(userRepository.findByUserId(userId).getActiveRecord())
+                       .flatMap(hospitalRecordRepository::findById)
+                       .orElse(null);
     }
 }

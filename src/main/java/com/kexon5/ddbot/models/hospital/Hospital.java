@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.kexon5.ddbot.bot.services.edithospital.actions.AddHospital.AddSteps.*;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -81,11 +83,11 @@ public class Hospital {
                     .append("\n");
     }
 
-    public void updateData(String[] requiredDocuments, String[] howToGet, String[] notes, String[] contactInfo) {
-        updateField(this.requiredDocuments, requiredDocuments);
-        updateField(this.howToGet, howToGet);
-        updateField(this.notes, notes);
-        updateField(this.contactInfo, contactInfo);
+    public void updateData(org.bson.Document userDocument) {
+        updateField(this.requiredDocuments, userDocument.get(REQUIRED_DOCUMENTS, String[].class));
+        updateField(this.howToGet, userDocument.get(HOW_TO_GET, String[].class));
+        updateField(this.notes, userDocument.get(NOTES, String[].class));
+        updateField(this.contactInfo, userDocument.get(CONTACT_INFO, String[].class));
     }
 
     private static void updateField(List<String> listData, String[] newData) {
@@ -101,4 +103,5 @@ public class Hospital {
                 .map(MarkupList::toSimpleString)
                 .collect(Collectors.toList());
     }
+
 }

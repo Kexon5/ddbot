@@ -17,3 +17,4 @@ hs_err_pid*
 target/
 src/main/resources/
 !src/main/resources/application.properties
+mongo-*.sh

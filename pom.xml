@@ -19,11 +19,12 @@
     <properties>
         <java.version>18</java.version>
 
-        <telegrambots.version>6.3.0</telegrambots.version>
+        <telegrambots.version>6.5.0</telegrambots.version>
         <google-api.version>1.32.1</google-api.version>
         <google-api.drive.version>v3-rev20211107-1.32.1</google-api.drive.version>
         <google-api.sheet.version>v4-rev20221216-2.0.0</google-api.sheet.version>
         <lombok.version>1.18.10</lombok.version>
+        <libphonenumber.version>8.13.7</libphonenumber.version>
     </properties>
 
 
@@ -38,18 +39,22 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-mongodb</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.statemachine</groupId>
-            <artifactId>spring-statemachine-starter</artifactId>
-            <version>3.2.0</version>
-        </dependency>
-
 
         <!--   TELEGRAM   -->
         <dependency>
             <groupId>org.telegram</groupId>
             <artifactId>telegrambots</artifactId>
             <version>${telegrambots.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots-chat-session-bot</artifactId>
+            <version>${telegrambots.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.telegram</groupId>
+            <artifactId>telegrambots-abilities</artifactId>
+            <version>6.5.1</version>
         </dependency>
 
         <!--   GOOGLE   -->
@@ -62,6 +67,11 @@
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-sheets</artifactId>
             <version>${google-api.sheet.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.libphonenumber</groupId>
+            <artifactId>libphonenumber</artifactId>
+            <version>${libphonenumber.version}</version>
         </dependency>
 
         <!--   3RD PARTY	-->
