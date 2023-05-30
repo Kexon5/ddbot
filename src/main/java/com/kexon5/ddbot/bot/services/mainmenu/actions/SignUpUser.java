@@ -18,10 +18,11 @@ import javax.annotation.Nullable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.kexon5.ddbot.bot.services.ActionState.SIGN_UP_USER;
+import static com.kexon5.ddbot.models.RegistrationConstants.bloodGroups;
+import static com.kexon5.ddbot.models.RegistrationConstants.factors;
 import static com.kexon5.ddbot.utils.Utils.*;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
@@ -112,9 +113,9 @@ public class SignUpUser extends ActionElement {
             }
 
             @Override
-            public Boolean validate(long userId, String userText, Document document) {
+            public String validate(long userId, String userText, Document document) {
                 return userText.equals(WOMAN) || userText.equals(MAN)
-                        ? userText.equals(MAN)
+                        ? userText
                         : null;
             }
         },
@@ -168,7 +169,7 @@ public class SignUpUser extends ActionElement {
         BLOOD_GROUP {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, @Nonnull Document userDocument) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(List.of(1, 2, 3, 4)).build());
+                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(bloodGroups).build());
             }
 
             @Override
@@ -177,17 +178,16 @@ public class SignUpUser extends ActionElement {
             }
 
             @Override
-            public Integer validate(long userId, String userText, Document document) {
-                int group = Integer.parseInt(userText);
-                return group >= 1 && group <= 4
-                        ? group
+            public String validate(long userId, String userText, Document document) {
+                return bloodGroups.contains(userText)
+                        ? userText
                         : null;
             }
         },
         RH_FACTOR {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, @Nonnull Document userDocument) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(List.of("+", "-")).build());
+                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(factors).build());
             }
 
             @Override
@@ -197,7 +197,7 @@ public class SignUpUser extends ActionElement {
 
             @Override
             public String validate(long userId, String userText, Document document) {
-                return userText.equals("+") || userText.equals("-")
+                return factors.contains(userText)
                         ? userText
                         : null;
             }
@@ -205,7 +205,7 @@ public class SignUpUser extends ActionElement {
         KELL_FACTOR {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, @Nonnull Document userDocument) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(List.of("+", "-")).build());
+                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(factors).build());
             }
 
             @Override
@@ -215,7 +215,7 @@ public class SignUpUser extends ActionElement {
 
             @Override
             public String validate(long userId, String userText, Document document) {
-                return userText.equals("+") || userText.equals("-")
+                return factors.contains(userText)
                         ? userText
                         : null;
             }
@@ -227,64 +227,48 @@ public class SignUpUser extends ActionElement {
                 builder.replyMarkup(YES_NO.build());
             }
 
-            private String getStringBloodGroup(int bloodGroup, boolean rhFactor) {
-                String rhFactorStr = rhFactor ? "(+)" : "(-)";
-                switch (bloodGroup) {
-                    case 1 -> {
-                        return "I" + rhFactorStr;
-                    }
-                    case 2 -> {
-                        return "II" + rhFactorStr;
-                    }
-                    case 3 -> {
-                        return "III" + rhFactorStr;
-                    }
-                    case 4 -> {
-                        return "IV" + rhFactorStr;
-                    }
-                    default -> {
-                        return "Incorrect blood group";
-                    }
-                }
+            private String getStringBloodGroup(String bloodGroup, String rhFactor) {
+                return bloodGroup + "(" + rhFactor + ")";
             }
 
             @Override
             public String getAnswer(@Nullable String userText, @NotNull Document document) {
                 String name = document.getString(NAME.name());
                 LocalDate birthday = document.get(BIRTHDAY.name(), LocalDate.class);
-                boolean isMan = document.getBoolean(SEX.name());
+                String sex = document.getString(SEX.name());
                 String phoneNumber = document.getString(PHONE_NUMBER.name());
                 String groupNumber = document.getString(GROUP_NUMBER.name());
 
                 User.UserBuilder userBuilder = User.builder()
                                                    .name(name)
                                                    .birthday(birthday)
-                                                   .isMan(isMan)
+                                                   .sex(sex)
                                                    .phoneNumber(phoneNumber)
                                                    .groupNumber(groupNumber);
 
                 StringBuilder sb = new StringBuilder("Суммарная информация о Вас:\n")
                         .append(new BoldString("\n\nВаше имя:\n")).append(name)
                         .append(new BoldString("\n\nДата рождения\n")).append(birthday)
-                        .append(new BoldString("\n\nПол\n")).append(isMan ? "Мужчина" : "Женщина")
+                        .append(new BoldString("\n\nПол\n")).append(sex)
                         .append(new BoldString("\n\nНомер телефона:\n")).append(phoneNumber)
                         .append(new BoldString("\n\nНомер группы:\n")).append(groupNumber);
 
                 if (document.containsKey(BLOOD_GROUP.name())) {
-                    int bloodGroup = document.getInteger(BLOOD_GROUP.name());
-                    boolean rhFactor = document.getBoolean(RH_FACTOR.name());
-                    boolean kellFactor = document.getBoolean(document.getBoolean(KELL_FACTOR.name()));
+                    String bloodGroup = document.getString(BLOOD_GROUP.name());
+                    String rhFactor = document.getString(RH_FACTOR.name());
+                    String kellFactor = document.getString(KELL_FACTOR.name());
 
                     userBuilder.bloodGroup(bloodGroup)
-                               .isRhPositive(rhFactor)
-                               .isKellPositive(kellFactor);
+                               .rhFactor(rhFactor)
+                               .kellFactor(kellFactor);
 
                     sb.append(new BoldString("\n\nГруппа крова:\n")).append(getStringBloodGroup(bloodGroup, rhFactor))
-                      .append(new BoldString("\n\nKell:\n")).append(kellFactor ? "Положительный" : "Отрицательный");
+                      .append(new BoldString("\n\nKell:\n")).append(kellFactor);
                 }
 
-                document.append(name(), userBuilder);
-                return sb.toString();
+                document.append("FORM", userBuilder);
+                return sb.append(new BoldString("\n\nВсё верно?"))
+                         .toString();
             }
 
             @Override
@@ -296,8 +280,12 @@ public class SignUpUser extends ActionElement {
         },
         FINAL {
             @Override
-            public String getAnswer(@Nullable String userText, @Nonnull Document userDocument) {
-                return "Вы успешно зарегистрированы!";
+            public void finalAction(long userId, @Nullable String userText, Document document) {
+                User user = document.get("FORM", User.UserBuilder.class)
+                                    .userId(userId)
+                                    .build();
+
+                userRepository.save(user);
             }
 
             @Override
@@ -306,12 +294,8 @@ public class SignUpUser extends ActionElement {
             }
 
             @Override
-            public void finalAction(long userId, @Nullable String userText, Document document) {
-                User user = document.get(SUMMARIZE.name(), User.UserBuilder.class)
-                                    .userId(userId)
-                                    .build();
-
-                userRepository.save(user);
+            public String getAnswer(@Nullable String userText, @Nonnull Document userDocument) {
+                return "Вы успешно зарегистрированы!";
             }
         };
 

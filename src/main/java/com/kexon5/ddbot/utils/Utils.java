@@ -20,8 +20,8 @@ public class Utils {
     public static final String YES = "Да";
     public static final String NO = "Нет";
 
-    public static final String MAN = "М";
-    public static final String WOMAN = "Ж";
+    public static final String MAN = "Прекрасный парень";
+    public static final String WOMAN = "Прелестная девушка";
 
     @Getter
     public static final ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder YES_NO =
@@ -40,6 +40,10 @@ public class Utils {
                                           .toList())
                 .resizeKeyboard(true)
                 .oneTimeKeyboard(true);
+    }
+
+    public static <T> ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder getReplyKeyboardMarkupBuilder(T[] buttons) {
+        return getReplyKeyboardMarkupBuilder(List.of(buttons));
     }
 
     public static InlineKeyboardMarkup getMenu(Collection<InlineKeyboardButton> buttons) {

@@ -30,7 +30,7 @@ public class User {
     private LocalDate birthday;
 
     @Field("SEX")
-    private boolean isMan;
+    private String sex;
 
     @Field("PHONE_NUMBER")
     private String phoneNumber;
@@ -39,13 +39,13 @@ public class User {
     private String groupNumber;
 
     @Field("BLOOD_GROUP")
-    private int bloodGroup;
+    private String bloodGroup;
 
     @Field("RH_FACTOR")
-    private boolean isRhPositive;
+    private String rhFactor;
 
     @Field("KELL_FACTOR")
-    private boolean isKellPositive;
+    private String kellFactor;
 
     @Field("ACTIVE_RECORD")
     private ObjectId activeRecord;
