@@ -108,10 +108,9 @@ public class GoogleSettingsService {
     }
 
     public GoogleSetting updateGoogleSettingsCollection(String name, String id, String link) {
-//        GoogleSetting newSetting = new GoogleSetting(name, id, link);
-//        googleSettingRepository.save(newSetting);
-//        return newSetting;
-        return null;
+        GoogleSetting newSetting = new GoogleSetting(name, id, link);
+        googleSettingRepository.save(newSetting);
+        return newSetting;
     }
 
     public ValueRange readTable(String sheetId, String range) {

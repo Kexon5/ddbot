@@ -1,7 +1,9 @@
 package com.kexon5.ddbot.models.hospital;
 
+import com.kexon5.ddbot.models.User;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -22,6 +24,14 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     public static final DateTimeFormatter DATE_AND_TIME = DateTimeFormatter.ofPattern("dd.MM (E), HH:mm");
     private static final Comparator<HospitalRecord> COMPARATOR = Comparator.comparing(HospitalRecord::getDate);
 
+
+    public enum RecordState {
+        READY,
+        OPEN,
+        CLOSED,
+        OUTDATED
+    }
+
     @Id
     private ObjectId id;
     @Field("HOSPITAL_NAME")
@@ -32,12 +42,15 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     private LocalDateTime date;
     @Field("TYPE")
     private String type;
+
     @Field("PEOPLE_COUNT")
     private int peopleCount;
     @Field("USERS")
-    private Set<Long> users = new HashSet<>();
-
-    private static final List<Object> savedSchema = List.of("Время", "Место сбора", "Место", "Тип выезда", "Кол-во человек");
+    @EqualsAndHashCode.Exclude
+    private Set<ObjectId> users = new HashSet<>();
+    @Field("STATE")
+    @EqualsAndHashCode.Exclude
+    private RecordState state;
 
     public HospitalRecord(List<Object> data, LocalDate date) {
         this.date = LocalDateTime.of(date, LocalTime.parse(data.get(0).toString(), DateTimeFormatter.ofPattern("H:mm")));
@@ -45,11 +58,8 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
         this.hospital = data.get(2).toString();
         this.type = data.get(3).toString();
         this.peopleCount = Integer.parseInt(data.get(4).toString());
-    }
 
-    public static boolean checkSchema(List<Object> currentSchema) {
-        if (currentSchema.size() != savedSchema.size()) return false;
-        return Objects.equals(currentSchema, savedSchema);
+        this.state = RecordState.READY;
     }
 
     public LocalDate getLocalDate() {
@@ -69,12 +79,14 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
         return date.format(DATE_AND_TIME);
     }
 
-    public boolean addUser(long userId) {
-        return users.add(userId);
+    public boolean addUser(User user) {
+        user.setActiveRecord(id);
+        return users.add(user.getId());
     }
 
-    public boolean removeUser(long userId) {
-        return users.remove(userId);
+    public boolean removeUser(User user) {
+        user.setActiveRecord(null);
+        return users.remove(user.getId());
     }
 
     private String getTypeToString() {
@@ -98,6 +110,5 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     public String toDate() {
         return "" + date.toLocalTime();
     }
-
 
 }
