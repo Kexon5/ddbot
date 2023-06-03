@@ -1,13 +1,12 @@
-package com.kexon5.ddbot.bot.services.hospital.actions;
+package com.kexon5.ddbot.bot.services.schedule.actions;
 
 import com.kexon5.ddbot.bot.services.ActionElement;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
-import com.kexon5.ddbot.services.ScheduleService;
+import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.markup.BoldString;
 import com.kexon5.ddbot.utils.markup.MarkupList;
 import lombok.Getter;
 import org.bson.Document;
-import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
@@ -27,17 +26,17 @@ import static com.kexon5.ddbot.utils.Utils.*;
 
 public class ReadSchedule extends ActionElement {
 
-    public ReadSchedule(ScheduleService scheduleService) {
+    public ReadSchedule(RepositoryService repositoryService) {
         super(READ_SCHEDULE, ReadSteps.values());
 
-        ReadSteps.scheduleService = scheduleService;
+        ReadSteps.repositoryService = repositoryService;
     }
 
     public enum ReadSteps implements ActionMessageState {
         READ() {
             @Override
             public void initAction(long userId, Document userDocument) {
-                TableData tableData = new TableData(scheduleService.readTable());
+                TableData tableData = new TableData(repositoryService.readTable());
 
                 if (tableData.checkSchema()) {
                     userDocument.append("RECORDS", tableData.createRecords());
@@ -60,7 +59,7 @@ public class ReadSchedule extends ActionElement {
 
                 LocalDateTime left = records.get(0).getDate().withHour(0);
                 LocalDateTime right = records.get(records.size() - 1).getDate().withHour(23);
-                records = scheduleService.findAllRecords(left, right);
+                records = repositoryService.findAllRecords(left, right);
                 userDocument.append("LEFT", left)
                             .append("RIGHT", right);
                 if (!records.isEmpty()) {
@@ -70,7 +69,7 @@ public class ReadSchedule extends ActionElement {
 
                     MarkupList<String> users = records.stream()
                                                       .map(HospitalRecord::getUsers)
-                                                      .flatMap(t -> scheduleService.findAllById(t).stream())
+                                                      .flatMap(t -> repositoryService.findAllById(t).stream())
                                                       .map(user -> user.getName() + ", " + user.getPhoneNumber())
                                                       .collect(Collectors.toCollection(MarkupList::new));
 
@@ -102,8 +101,8 @@ public class ReadSchedule extends ActionElement {
                 if (document.getString(READ.name()).equals(YES)) {
                     LocalDateTime left = document.get("LEFT", LocalDateTime.class);
                     LocalDateTime right = document.get("RIGHT", LocalDateTime.class);
-                    scheduleService.deleteAllByDateBetween(left, right);
-                    scheduleService.saveRecords(document.getList("RECORDS", HospitalRecord.class));
+                    repositoryService.deleteAllByDateBetween(left, right);
+                    repositoryService.saveRecords(document.getList("RECORDS", HospitalRecord.class));
                 }
             }
 
@@ -113,7 +112,7 @@ public class ReadSchedule extends ActionElement {
             }
 
             @Override
-            public String getAnswer(@Nullable String userText, @NotNull Document document) {
+            public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 return document.getString(READ.name()).equals(YES)
                         ? "Успешно выполнено"
                         : "Успешно ничего не сделано";
@@ -187,7 +186,7 @@ public class ReadSchedule extends ActionElement {
             }
         }
 
-        private static ScheduleService scheduleService;
+        private static RepositoryService repositoryService;
 
     }
 }

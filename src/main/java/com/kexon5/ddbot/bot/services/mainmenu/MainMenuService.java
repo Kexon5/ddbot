@@ -14,8 +14,9 @@ public class MainMenuService extends ServiceElement {
 
     private final UserRepository userRepository;
 
-    public MainMenuService(UserRepository userRepository) {
-        super(ServiceState.MAIN_MENU);
+    public MainMenuService(ServiceState state,
+                           UserRepository userRepository) {
+        super(state);
 
         this.userRepository = userRepository;
     }
@@ -29,7 +30,7 @@ public class MainMenuService extends ServiceElement {
     public DialogueFlow.DialogueFlowBuilder setAdditional(DialogueFlow.DialogueFlowBuilder builder) {
         return builder.onlyIf(update -> userRepository.existsByUserId(getChatId(update)))
                 .onlyIf(update -> builder.getUserStateId(update) == -1
-                        || (CALLBACK_QUERY.test(update) && update.getCallbackQuery().getData().equals(ServiceState.MAIN_MENU.toString())));
+                        || (CALLBACK_QUERY.test(update) && update.getCallbackQuery().getData().equals(serviceState.toString())));
     }
 
 }

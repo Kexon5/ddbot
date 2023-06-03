@@ -2,14 +2,14 @@ package com.kexon5.ddbot.bot.services.hospital.actions;
 
 import com.kexon5.ddbot.bot.services.ActionElement;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
-import com.kexon5.ddbot.services.ScheduleService;
+import com.kexon5.ddbot.services.RepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.kexon5.ddbot.bot.services.ActionState.OPEN_REGISTRATION;
@@ -17,10 +17,10 @@ import static com.kexon5.ddbot.utils.Utils.*;
 
 public class OpenRegistration extends ActionElement {
 
-    public OpenRegistration(ScheduleService scheduleService) {
+    public OpenRegistration(RepositoryService repositoryService) {
         super(OPEN_REGISTRATION, OpenSteps.values());
 
-        OpenRegistration.OpenSteps.scheduleService = scheduleService;
+        OpenRegistration.OpenSteps.repositoryService = repositoryService;
     }
 
     @RequiredArgsConstructor
@@ -28,7 +28,7 @@ public class OpenRegistration extends ActionElement {
         GET {
             @Override
             public void initAction(long userId, Document userDocument) {
-                List<HospitalRecord> records = scheduleService.getAllRecords(HospitalRecord.RecordState.READY);
+                List<HospitalRecord> records = repositoryService.getAllRecords(HospitalRecord.RecordState.READY);
 
                 userDocument.append("RECORDS", records);
             }
@@ -39,7 +39,7 @@ public class OpenRegistration extends ActionElement {
             }
 
             @Override
-            public String getAnswer(@Nullable String userText, @NotNull Document document) {
+            public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 List<HospitalRecord> records = document.getList("RECORDS", HospitalRecord.class);
 
                 StringBuilder sb = new StringBuilder();
@@ -69,7 +69,7 @@ public class OpenRegistration extends ActionElement {
                 if (document.getString(GET.name()).equals(YES)) {
                     List<HospitalRecord> records = document.getList("RECORDS", HospitalRecord.class);
                     records.forEach(r -> r.setState(HospitalRecord.RecordState.OPEN));
-                    scheduleService.saveRecords(records);
+                    repositoryService.saveRecords(records);
                 }
             }
 
@@ -79,13 +79,13 @@ public class OpenRegistration extends ActionElement {
             }
 
             @Override
-            public String getAnswer(@Nullable String userText, @NotNull Document document) {
+            public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 return document.getString(GET.name()).equals(YES)
                         ? "Успешно выполнено"
                         : "Успешно ничего не сделано";
             }
         };
 
-        private static ScheduleService scheduleService;
+        private static RepositoryService repositoryService;
     }
 }

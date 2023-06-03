@@ -2,7 +2,7 @@ package com.kexon5.ddbot.bot.services.mainmenu.actions;
 
 import com.kexon5.ddbot.bot.services.ActionElement;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
-import com.kexon5.ddbot.services.ScheduleService;
+import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.markup.BoldString;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
@@ -16,14 +16,14 @@ import static com.kexon5.ddbot.utils.Utils.*;
 
 public class CheckOutUser extends ActionElement {
 
-    public CheckOutUser(ScheduleService scheduleService) {
+    public CheckOutUser(RepositoryService repositoryService) {
         super(
                 CHECK_OUT_USER,
-                scheduleService::userHasActiveRecord,
+                repositoryService::userHasActiveRecord,
                 CheckOutSteps.values()
         );
 
-        CheckOutSteps.scheduleService = scheduleService;
+        CheckOutSteps.repositoryService = repositoryService;
     }
 
     @RequiredArgsConstructor
@@ -31,7 +31,7 @@ public class CheckOutUser extends ActionElement {
         STEP1 {
             @Override
             public void initAction(long userId, Document userDocument) {
-                userDocument.append(RECORD, scheduleService.getUserActiveRecord(userId));
+                userDocument.append(RECORD, repositoryService.getUserActiveRecord(userId));
             }
 
             @Override
@@ -59,7 +59,7 @@ public class CheckOutUser extends ActionElement {
             public void finalAction(long userId, @Nullable String userText, Document userDocument) {
                 if (userDocument.getString(STEP1.name()).equals(YES)) {
                     HospitalRecord record = userDocument.get(RECORD, HospitalRecord.class);
-                    scheduleService.checkOutUser(record, userId);
+                    repositoryService.checkOutUser(record, userId);
                 }
             }
 
@@ -74,7 +74,7 @@ public class CheckOutUser extends ActionElement {
 
         private static final String RECORD = "RECORD";
 
-        private static ScheduleService scheduleService;
+        private static RepositoryService repositoryService;
 
     }
 }

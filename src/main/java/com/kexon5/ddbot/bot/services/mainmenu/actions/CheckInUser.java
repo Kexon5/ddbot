@@ -2,13 +2,12 @@ package com.kexon5.ddbot.bot.services.mainmenu.actions;
 
 import com.kexon5.ddbot.bot.services.ActionElement;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
-import com.kexon5.ddbot.services.ScheduleService;
+import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.Utils;
 import com.kexon5.ddbot.utils.markup.BoldString;
 import com.kexon5.ddbot.utils.markup.MarkupList;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
-import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
@@ -22,14 +21,14 @@ import static com.kexon5.ddbot.bot.services.ActionState.CHECK_IN_USER;
 
 public class CheckInUser extends ActionElement {
 
-    public CheckInUser(ScheduleService scheduleService) {
+    public CheckInUser(RepositoryService repositoryService) {
         super(
                 CHECK_IN_USER,
-                userId -> !scheduleService.userHasActiveRecord(userId) && scheduleService.existOpenRecords(),
+                userId -> !repositoryService.userHasActiveRecord(userId) && repositoryService.existOpenRecords(),
                 CheckInSteps.values()
         );
 
-        CheckInSteps.scheduleService = scheduleService;
+        CheckInSteps.repositoryService = repositoryService;
     }
 
     @RequiredArgsConstructor
@@ -37,9 +36,9 @@ public class CheckInUser extends ActionElement {
         PLACE_NAME {
             @Override
             public void initAction(long userId, Document userDocument) {
-                List<HospitalRecord> records = scheduleService.getAllRecords(HospitalRecord.RecordState.OPEN).stream()
-                                                              .filter(HospitalRecord::hasPlace)
-                                                              .toList();
+                List<HospitalRecord> records = repositoryService.getAllRecords(HospitalRecord.RecordState.OPEN).stream()
+                                                                .filter(HospitalRecord::hasPlace)
+                                                                .toList();
 
                 userDocument.append("RECORDS", records)
                             .append("RECORDS_MAP", new Document(records.stream()
@@ -112,7 +111,7 @@ public class CheckInUser extends ActionElement {
                 HospitalRecord answer = document.get(STEP1.name(), HospitalRecord.class);
 
                 // todo add valid step
-                scheduleService.checkInUser(answer, userId);
+                repositoryService.checkInUser(answer, userId);
             }
 
             @Override
@@ -121,13 +120,13 @@ public class CheckInUser extends ActionElement {
             }
 
             @Override
-            public String getAnswer(@Nullable String userText, @NotNull Document document) {
+            public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 return document.get(STEP1.name(), HospitalRecord.class).getUsers().toString();
             }
 
         };
 
-        private static ScheduleService scheduleService;
+        private static RepositoryService repositoryService;
 
     }
 

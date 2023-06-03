@@ -1,7 +1,7 @@
-package com.kexon5.ddbot.bot.services.hospital.actions;
+package com.kexon5.ddbot.bot.services.schedule.actions;
 
 import com.kexon5.ddbot.bot.services.ActionElement;
-import com.kexon5.ddbot.services.ScheduleService;
+import com.kexon5.ddbot.services.RepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 
@@ -13,10 +13,10 @@ import static com.kexon5.ddbot.bot.services.ActionState.CREATE_SCHEDULE;
 
 public class CreateSchedule extends ActionElement {
 
-    public CreateSchedule(ScheduleService scheduleService) {
+    public CreateSchedule(RepositoryService repositoryService) {
         super(CREATE_SCHEDULE, CreateSteps.values());
 
-        CreateSteps.scheduleService = scheduleService;
+        CreateSteps.repositoryService = repositoryService;
     }
 
     @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class CreateSchedule extends ActionElement {
         CREATED() {
             @Override
             public void initAction(long userId, Document userDocument) {
-                userDocument.append(LINK, scheduleService.getSchedule().getLink());
+                userDocument.append(LINK, repositoryService.getSchedule().getLink());
             }
 
             @Nullable
@@ -49,7 +49,7 @@ public class CreateSchedule extends ActionElement {
 
         };
 
-        private static ScheduleService scheduleService;
+        private static RepositoryService repositoryService;
 
     }
 
