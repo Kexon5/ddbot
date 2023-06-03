@@ -1,18 +1,19 @@
 package com.kexon5.ddbot.conf.statemachine;
 
 import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.services.administration.actions.GrantRoles;
 import com.kexon5.ddbot.bot.services.edithospital.actions.AddHospital;
 import com.kexon5.ddbot.bot.services.edithospital.actions.EditHospital;
-import com.kexon5.ddbot.bot.services.hospital.actions.CreateSchedule;
 import com.kexon5.ddbot.bot.services.hospital.actions.OpenRegistration;
-import com.kexon5.ddbot.bot.services.hospital.actions.ReadSchedule;
 import com.kexon5.ddbot.bot.services.mainmenu.actions.CheckInUser;
 import com.kexon5.ddbot.bot.services.mainmenu.actions.CheckOutUser;
 import com.kexon5.ddbot.bot.services.mainmenu.actions.SignUpUser;
+import com.kexon5.ddbot.bot.services.schedule.actions.CreateSchedule;
+import com.kexon5.ddbot.bot.services.schedule.actions.ReadSchedule;
 import com.kexon5.ddbot.repositories.HospitalBackupRepository;
 import com.kexon5.ddbot.repositories.HospitalRepository;
 import com.kexon5.ddbot.repositories.UserRepository;
-import com.kexon5.ddbot.services.ScheduleService;
+import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -31,13 +32,13 @@ public class ActionConfiguration {
     }
 
     @Bean
-    public CheckInUser checkInUser(ScheduleService scheduleService) {
-        return new CheckInUser(scheduleService);
+    public CheckInUser checkInUser(RepositoryService repositoryService) {
+        return new CheckInUser(repositoryService);
     }
 
     @Bean
-    public CheckOutUser checkOutUser(ScheduleService scheduleService) {
-        return new CheckOutUser(scheduleService);
+    public CheckOutUser checkOutUser(RepositoryService repositoryService) {
+        return new CheckOutUser(repositoryService);
     }
 
     @Bean
@@ -46,13 +47,13 @@ public class ActionConfiguration {
     }
 
     @Bean
-    public CreateSchedule createSchedule(ScheduleService scheduleService) {
-        return new CreateSchedule(scheduleService);
+    public CreateSchedule createSchedule(RepositoryService repositoryService) {
+        return new CreateSchedule(repositoryService);
     }
 
     @Bean
-    public ReadSchedule readSchedule(ScheduleService scheduleService) {
-        return new ReadSchedule(scheduleService);
+    public ReadSchedule readSchedule(RepositoryService repositoryService) {
+        return new ReadSchedule(repositoryService);
     }
 
     @Bean
@@ -61,8 +62,13 @@ public class ActionConfiguration {
     }
 
     @Bean
-    public OpenRegistration openRegistration(ScheduleService scheduleService) {
-        return new OpenRegistration(scheduleService);
+    public OpenRegistration openRegistration(RepositoryService repositoryService) {
+        return new OpenRegistration(repositoryService);
+    }
+
+    @Bean
+    public GrantRoles grantRoles(UserRepository userRepository) {
+        return new GrantRoles(userRepository);
     }
 
     @Bean

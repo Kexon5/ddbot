@@ -51,5 +51,10 @@ public class User {
     private ObjectId activeRecord;
 
     @Field("ROLES")
-    private Set<String> roles;
+    private Set<Roles> roles;
+
+
+    public String toShortString() {
+        return name + ", Дата рождения: " + birthday + ", Роли: " + roles;
+    }
 }

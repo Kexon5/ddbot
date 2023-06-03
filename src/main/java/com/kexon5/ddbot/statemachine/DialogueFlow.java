@@ -1,12 +1,12 @@
 package com.kexon5.ddbot.statemachine;
 
-import org.jetbrains.annotations.NotNull;
 import org.telegram.abilitybots.api.bot.BaseAbilityBot;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.Reply;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.telegram.abilitybots.api.objects.Flag.CALLBACK_QUERY;
+import static org.telegram.abilitybots.api.objects.Flag.MESSAGE;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
 public class DialogueFlow extends Reply {
@@ -157,7 +158,7 @@ public class DialogueFlow extends Reply {
                         runAction(jumpFlow, chatId, bot, upd);
                         if (jumpFlow.postAction != null) {
                             db.<Long, Integer>getMap(STATES).remove(getChatId(upd));
-                            postAction.accept(bot, upd);
+                            jumpFlow.postAction.accept(bot, upd);
                         }
                     } else {
                         Map<Long, Integer> errorMap = db.getMap(ERROR_COUNTER);
@@ -194,16 +195,17 @@ public class DialogueFlow extends Reply {
                                                                  .build());
         }
 
-        @NotNull
+        @Nonnull
         private List<Predicate<Update>> toStateful(List<Predicate<Update>> conditions, String name) {
             List<Predicate<Update>> statefulConditions = newArrayList(conditions);
             statefulConditions.add(0, upd -> {
                 int stateId = getUserStateId(upd);
-                if (CALLBACK_QUERY.test(upd)) {
-                    return upd.getCallbackQuery().getData().equals(name);
-                }
 
-                return id == stateId;
+                return MESSAGE.test(upd) && name.endsWith("MENU")
+                        ? false
+                        : CALLBACK_QUERY.test(upd)
+                            ? upd.getCallbackQuery().getData().equals(name)
+                            : id == stateId;
             });
             return statefulConditions;
         }

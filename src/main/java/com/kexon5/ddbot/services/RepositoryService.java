@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import static com.kexon5.ddbot.models.hospital.Hospital.getSimpleStringList;
 
 @RequiredArgsConstructor
-public class ScheduleService {
+public class RepositoryService {
 
     private static final int MONTH_FOR_SPRING_EVENT = 4;
     private static final int MONTH_FOR_FALL_EVENT = 10;
@@ -168,12 +168,16 @@ public class ScheduleService {
         return hospitalRecordRepository.findAllByStateEquals(state);
     }
 
+    public User getUserByUserId(long userId) {
+        return userRepository.findByUserId(userId);
+    }
+
     public boolean userHasActiveRecord(long userId) {
-        return userRepository.findByUserId(userId).getActiveRecord() != null;
+        return getUserByUserId(userId).getActiveRecord() != null;
     }
 
     public HospitalRecord getUserActiveRecord(long userId) {
-        return Optional.ofNullable(userRepository.findByUserId(userId).getActiveRecord())
+        return Optional.ofNullable(getUserByUserId(userId).getActiveRecord())
                        .flatMap(hospitalRecordRepository::findById)
                        .orElse(null);
     }

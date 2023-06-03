@@ -2,6 +2,7 @@ package com.kexon5.ddbot.bot.services.mainmenu.actions;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.models.Roles;
 import com.kexon5.ddbot.models.User;
 import com.kexon5.ddbot.repositories.UserRepository;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
@@ -9,7 +10,6 @@ import com.kexon5.ddbot.utils.Utils;
 import com.kexon5.ddbot.utils.markup.BoldString;
 import lombok.Setter;
 import org.bson.Document;
-import org.jetbrains.annotations.NotNull;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
@@ -232,7 +232,7 @@ public class SignUpUser extends ActionElement {
             }
 
             @Override
-            public String getAnswer(@Nullable String userText, @NotNull Document document) {
+            public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 String name = document.getString(NAME.name());
                 LocalDate birthday = document.get(BIRTHDAY.name(), LocalDate.class);
                 String sex = document.getString(SEX.name());
@@ -244,7 +244,8 @@ public class SignUpUser extends ActionElement {
                                                    .birthday(birthday)
                                                    .sex(sex)
                                                    .phoneNumber(phoneNumber)
-                                                   .groupNumber(groupNumber);
+                                                   .groupNumber(groupNumber)
+                                                   .roles(Roles.donor);
 
                 StringBuilder sb = new StringBuilder("Суммарная информация о Вас:\n")
                         .append(new BoldString("\n\nВаше имя:\n")).append(name)

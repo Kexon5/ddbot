@@ -22,13 +22,12 @@ import static com.kexon5.ddbot.bot.services.ServiceState.MAIN_MENU;
 @Getter
 public abstract class ServiceElement extends MenuElement implements MessageState {
 
-    private final ServiceState serviceState;
+    protected final ServiceState serviceState;
 
-    protected final List<ServiceState> subServices;
+    private final List<ServiceState> subServices;
     private final List<ActionState> subActions;
 
     private final List<Pair<Predicate<Long>, InlineKeyboardButton>> buttons = new ArrayList<>();
-
 
     protected ServiceElement(ServiceState serviceState) {
         this(serviceState, null);
@@ -79,10 +78,6 @@ public abstract class ServiceElement extends MenuElement implements MessageState
         return Pair.of(accessableElement.hasAccess(), Utils.getButton(callbackData, accessableElement.getButtonText()));
     }
 
-    private static Pair<Predicate<Long>, InlineKeyboardButton> getButton(Buttonable actionState) {
-        return Pair.of(user -> true, Utils.getButton(actionState.toString(), actionState.getButtonText()));
-    }
-
     @Override
     public BotApiMethod<? extends Serializable> getMessage(Long userId, Integer msgId, @Nullable String userText) {
         return userText != null
@@ -104,7 +99,8 @@ public abstract class ServiceElement extends MenuElement implements MessageState
     public InlineKeyboardMarkup getFilteredMenu(long userId) {
         return Utils.getMenu(buttons.stream()
                                     .filter(b -> b.getFirst().test(userId))
-                                    .map(Pair::getSecond).toList());
+                                    .map(Pair::getSecond)
+                                    .toList());
     }
 
 }

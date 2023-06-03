@@ -10,6 +10,8 @@ import java.util.Set;
 public interface UserRepository extends MongoRepository<User, ObjectId> {
     List<User> findAllByRolesContains(Set<String> roles);
 
+    List<User> findAllByNameContainsIgnoreCase(String substring);
+
     User findByUserId(long userId);
 
     boolean existsByUserId(long userId);
