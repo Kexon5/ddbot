@@ -8,15 +8,14 @@ import com.kexon5.ddbot.repositories.HospitalRecordRepository;
 import com.kexon5.ddbot.repositories.HospitalRepository;
 import com.kexon5.ddbot.repositories.UserRepository;
 import com.kexon5.ddbot.services.GoogleSettingsService;
+import com.kexon5.ddbot.services.MailingService;
 import com.kexon5.ddbot.services.RepositoryService;
-import com.kexon5.ddbot.services.TaskManager;
 import com.kexon5.ddbot.statemachine.MenuElement;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.db.MapDBContext;
-
-import java.time.temporal.ChronoUnit;
 
 @Configuration
 public class CommonServiceConfiguration {
@@ -31,26 +30,22 @@ public class CommonServiceConfiguration {
     }
 
     @Bean
-    public RepositoryService repositoryService(TaskManager taskManager,
-                                               GoogleSettingsService googleSettingsService,
+    public RepositoryService repositoryService(GoogleSettingsService googleSettingsService,
                                                HospitalRepository hospitalRepository,
                                                HospitalRecordRepository hospitalRecordRepository,
                                                UserRepository userRepository) {
-        RepositoryService repositoryService = new RepositoryService(
+        return new RepositoryService(
                 googleSettingsService,
                 hospitalRepository,
                 hospitalRecordRepository,
                 userRepository
         );
-
-        taskManager.addRepeatableTask(repositoryService.dailyTask(), 1L, ChronoUnit.DAYS);
-
-        return repositoryService;
     }
 
-    @Bean(initMethod = "init")
-    public TaskManager taskManager(DDBot bot) {
-        return new TaskManager(bot);
+    @Bean
+    public MailingService taskManager(ThreadPoolTaskScheduler threadPoolTaskScheduler,
+                                      DDBot bot) {
+        return new MailingService(threadPoolTaskScheduler, bot);
     }
 
     @Bean
