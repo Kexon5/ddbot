@@ -11,7 +11,7 @@ import com.kexon5.ddbot.repositories.UserRepository;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.telegram.abilitybots.api.bot.BaseAbilityBot;
+import org.springframework.scheduling.annotation.Scheduled;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -19,6 +19,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -37,22 +38,21 @@ public class RepositoryService {
     private final UserRepository userRepository;
 
 
-    public Consumer<BaseAbilityBot> dailyTask() {
-        return bot -> {
-            List<HospitalRecord> records = hospitalRecordRepository.findAllByStateEquals(HospitalRecord.RecordState.CLOSED).stream()
-                                                                   .filter(record -> record.getDate().isBefore(LocalDateTime.now()))
-                                                                   .toList();
+    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.DAYS)
+    public void dailyTask() {
+        List<HospitalRecord> records = hospitalRecordRepository.findAllByStateEquals(HospitalRecord.RecordState.CLOSED).stream()
+                                                               .filter(record -> record.getDate().isBefore(LocalDateTime.now()))
+                                                               .toList();
 
-            List<User> usersList = records.stream()
-                                          .peek(rec -> rec.setState(HospitalRecord.RecordState.OUTDATED))
-                                          .map(HospitalRecord::getUsers)
-                                          .flatMap(users -> userRepository.findAllById(users).stream())
-                                          .peek(user -> user.setActiveRecord(null))
-                                          .toList();
+        List<User> usersList = records.stream()
+                                      .peek(rec -> rec.setState(HospitalRecord.RecordState.OUTDATED))
+                                      .map(HospitalRecord::getUsers)
+                                      .flatMap(users -> userRepository.findAllById(users).stream())
+                                      .peek(user -> user.setActiveRecord(null))
+                                      .toList();
 
-            userRepository.saveAll(usersList);
-            hospitalRecordRepository.saveAll(records);
-        };
+        userRepository.saveAll(usersList);
+        hospitalRecordRepository.saveAll(records);
     }
 
     @Getter
