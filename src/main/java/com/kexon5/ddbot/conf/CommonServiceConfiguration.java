@@ -3,19 +3,21 @@ package com.kexon5.ddbot.conf;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.sheets.v4.Sheets;
 import com.kexon5.ddbot.bot.DDBot;
-import com.kexon5.ddbot.repositories.GoogleSettingRepository;
-import com.kexon5.ddbot.repositories.HospitalRecordRepository;
-import com.kexon5.ddbot.repositories.HospitalRepository;
-import com.kexon5.ddbot.repositories.UserRepository;
+import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.repositories.*;
 import com.kexon5.ddbot.services.GoogleSettingsService;
 import com.kexon5.ddbot.services.MailingService;
 import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.statemachine.MenuElement;
+import org.bson.Document;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.db.MapDBContext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class CommonServiceConfiguration {
@@ -53,5 +55,25 @@ public class CommonServiceConfiguration {
         DBContext test = MapDBContext.offlineInstance("TEST");
         MenuElement.setDbContext(test);
         return test;
+    }
+
+    @Bean
+    public Map<Long, Document> dbActionContext(DBContext dbContext,
+                                               BackupContextRepository backupContextRepository,
+                                               ThreadPoolTaskScheduler threadPoolTaskScheduler) {
+        Map<Long, Document> dbActionContext = new HashMap<>();
+        ActionElement.setContextMap(dbActionContext);
+
+        // TODO: 04.06.2023 add this task to handler service with interactive menu
+//        Duration defaultWindow = Duration.of(30L, ChronoUnit.SECONDS);
+//        Duration deleteAfter = defaultWindow.multipliedBy(5);
+//
+//        threadPoolTaskScheduler.scheduleAtFixedRate(() -> {
+//            BackupContext backupContext = new BackupContext(dbContext.backup(), dbActionContext);
+//            backupContextRepository.save(backupContext);
+//            backupContextRepository.deleteAllByDateTimeBefore(LocalDateTime.now().minus(deleteAfter));
+//        }, defaultWindow);
+
+        return dbActionContext;
     }
 }
