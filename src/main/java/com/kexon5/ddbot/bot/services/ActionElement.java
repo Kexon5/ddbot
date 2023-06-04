@@ -4,6 +4,7 @@ import com.kexon5.ddbot.statemachine.DialogueFlow;
 import com.kexon5.ddbot.statemachine.MenuElement;
 import com.kexon5.ddbot.statemachine.MessageState;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -32,7 +33,8 @@ public class ActionElement extends MenuElement {
 
     private final ActionState actionState;
 
-    protected static final Map<Long, Document> contextMap = new HashMap<>();
+    @Setter
+    public static Map<Long, Document> contextMap;
 
     private final ActionMessageState[] steps;
 
