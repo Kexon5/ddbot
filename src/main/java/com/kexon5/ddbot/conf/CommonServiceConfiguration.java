@@ -8,7 +8,7 @@ import com.kexon5.ddbot.repositories.*;
 import com.kexon5.ddbot.services.GoogleSettingsService;
 import com.kexon5.ddbot.services.MailingService;
 import com.kexon5.ddbot.services.RepositoryService;
-import com.kexon5.ddbot.statemachine.MenuElement;
+import com.kexon5.ddbot.statemachine.Element;
 import org.bson.Document;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,7 +53,7 @@ public class CommonServiceConfiguration {
     @Bean
     public DBContext dbContext() {
         DBContext test = MapDBContext.offlineInstance("TEST");
-        MenuElement.setDbContext(test);
+        Element.setDbContext(test);
         return test;
     }
 

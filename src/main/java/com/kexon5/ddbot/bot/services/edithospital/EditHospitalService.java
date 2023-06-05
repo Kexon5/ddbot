@@ -1,6 +1,6 @@
 package com.kexon5.ddbot.bot.services.edithospital;
 
-import com.kexon5.ddbot.bot.services.ServiceElement;
+import com.kexon5.ddbot.bot.services.MenuElement;
 import com.kexon5.ddbot.bot.services.ServiceState;
 import com.kexon5.ddbot.models.hospital.Hospital;
 import com.kexon5.ddbot.services.RepositoryService;
@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class EditHospitalService extends ServiceElement {
+public class EditHospitalService extends MenuElement {
 
     private final RepositoryService repositoryService;
 

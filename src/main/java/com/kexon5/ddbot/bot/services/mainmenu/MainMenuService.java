@@ -1,6 +1,6 @@
 package com.kexon5.ddbot.bot.services.mainmenu;
 
-import com.kexon5.ddbot.bot.services.ServiceElement;
+import com.kexon5.ddbot.bot.services.MenuElement;
 import com.kexon5.ddbot.bot.services.ServiceState;
 import com.kexon5.ddbot.repositories.UserRepository;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
 import static org.telegram.abilitybots.api.objects.Flag.CALLBACK_QUERY;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
-public class MainMenuService extends ServiceElement {
+public class MainMenuService extends MenuElement {
 
     private final UserRepository userRepository;
 
@@ -30,7 +30,7 @@ public class MainMenuService extends ServiceElement {
     public DialogueFlow.DialogueFlowBuilder setAdditional(DialogueFlow.DialogueFlowBuilder builder) {
         return builder.onlyIf(update -> userRepository.existsByUserId(getChatId(update)))
                 .onlyIf(update -> builder.getUserStateId(update) == -1
-                        || (CALLBACK_QUERY.test(update) && update.getCallbackQuery().getData().equals(serviceState.toString())));
+                        || (CALLBACK_QUERY.test(update) && update.getCallbackQuery().getData().equals(elementState.toString())));
     }
 
 }

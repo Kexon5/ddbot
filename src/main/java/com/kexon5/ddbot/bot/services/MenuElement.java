@@ -1,0 +1,70 @@
+package com.kexon5.ddbot.bot.services;
+
+import com.kexon5.ddbot.statemachine.DialogueFlow;
+import com.kexon5.ddbot.statemachine.Element;
+import lombok.Getter;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+
+import javax.annotation.Nullable;
+import java.io.Serializable;
+import java.util.List;
+import java.util.function.Predicate;
+
+import static com.kexon5.ddbot.bot.services.ActionState.BACK;
+import static com.kexon5.ddbot.bot.services.ServiceState.MAIN_MENU;
+
+@Getter
+public abstract class MenuElement extends AbstractServiceElement {
+
+    private final List<ServiceState> subServices;
+    private final List<ActionState> subActions;
+
+
+    protected MenuElement(ServiceState serviceState) {
+        this(serviceState, null);
+    }
+
+    protected MenuElement(ServiceState serviceState,
+                          @Nullable Predicate<Long> accessPredicate) {
+        super(serviceState, accessPredicate);
+
+        this.subServices = serviceState.getServicesList();
+        this.subActions = serviceState.getActionsList();
+    }
+
+    @Override
+    public DialogueFlow.DialogueFlowBuilder createReplyFlow() {
+        DialogueFlow.DialogueFlowBuilder builder = DialogueFlow.builder(dbContext)
+                                                               .enableStats(elementState.name())
+                                                               .action((bot, update) -> bot.silent().execute(getMessage(update)));
+
+        for (ServiceState subService : subServices) {
+            AbstractServiceElement element = (AbstractServiceElement) registry.get(subService);
+            builder.next(element.getReplyFlowBuilder().build());
+
+            buttons.add(getSecuredButton(subService.toString(), element));
+            element.buttons.add(getButton(elementState.name(), BACK));
+
+            if (!MAIN_MENU.getServicesList().contains(subService) && !subService.equals(MAIN_MENU)) {
+                element.buttons.add(getButton(MAIN_MENU.toString(), MAIN_MENU));
+            }
+
+        }
+
+        for (ActionState subAction : subActions) {
+            Element actionElement = registry.get(subAction);
+
+            buttons.add(getSecuredButton(subAction.toString(), actionElement));
+        }
+
+        return builder;
+    }
+
+    @Override
+    public BotApiMethod<? extends Serializable> getMessage(Long userId, Integer msgId, @Nullable String userText) {
+        return userText != null
+                ? sendMessage(userId, userText)
+                : editMessage(userId, msgId);
+    }
+
+}
