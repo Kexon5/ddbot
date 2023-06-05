@@ -1,12 +1,12 @@
 package com.kexon5.ddbot.bot.services.schedule;
 
-import com.kexon5.ddbot.bot.services.ServiceElement;
+import com.kexon5.ddbot.bot.services.MenuElement;
 import com.kexon5.ddbot.bot.services.ServiceState;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-public class ScheduleService extends ServiceElement {
+public class ScheduleService extends MenuElement {
 
     public ScheduleService(ServiceState state,
                            Predicate<Long> accessPredicate) {

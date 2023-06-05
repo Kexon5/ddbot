@@ -7,24 +7,29 @@ import org.telegram.abilitybots.api.db.DBContext;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 @Getter
-public abstract class MenuElement implements Accessable {
+public abstract class Element<T extends Buttonable> implements Accessable {
 
-    protected static final Map<Buttonable, MenuElement> registry = new HashMap<>();
-
+    protected static final Map<Buttonable, Element<? extends Buttonable>> registry = new HashMap<>();
     @Setter
     protected static DBContext dbContext;
 
-    private final String buttonText;
+    protected final T elementState;
+
     private final Predicate<Long> accessPredicate;
 
-    public MenuElement(Buttonable button, @Nullable Predicate<Long> accessPredicate) {
-        this.buttonText = button.getButtonText();
+    public Element(T state, @Nullable Predicate<Long> accessPredicate) {
+        this.elementState = state;
         this.accessPredicate = accessPredicate;
 
-        registry.put(button, this);
+        registry.put(state, this);
+    }
+
+    public String getButtonText() {
+        return elementState.getButtonText();
     }
 
     public DialogueFlow.DialogueFlowBuilder setAdditional(DialogueFlow.DialogueFlowBuilder builder) {
@@ -39,8 +44,7 @@ public abstract class MenuElement implements Accessable {
 
     @Override
     public Predicate<Long> hasAccess() {
-        return accessPredicate != null
-                ? accessPredicate
-                : Accessable.super.hasAccess();
+        return Optional.ofNullable(accessPredicate)
+                       .orElse(Accessable.super.hasAccess());
     }
 }

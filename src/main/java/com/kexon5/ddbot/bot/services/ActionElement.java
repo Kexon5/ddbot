@@ -1,7 +1,7 @@
 package com.kexon5.ddbot.bot.services;
 
 import com.kexon5.ddbot.statemachine.DialogueFlow;
-import com.kexon5.ddbot.statemachine.MenuElement;
+import com.kexon5.ddbot.statemachine.Element;
 import com.kexon5.ddbot.statemachine.MessageState;
 import lombok.Getter;
 import lombok.Setter;
@@ -27,7 +27,7 @@ import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
 @Slf4j
 @Getter
-public class ActionElement extends MenuElement {
+public class ActionElement extends Element<ActionState> {
 
     protected static final String USER_CONTEXT = "user_contexts";
 

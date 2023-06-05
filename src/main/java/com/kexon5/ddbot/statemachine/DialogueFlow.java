@@ -134,6 +134,14 @@ public class DialogueFlow extends Reply {
             return this;
         }
 
+        public DialogueFlowBuilder next(ButtonReply buttonReply) {
+            List<Predicate<Update>> statefulConditions = toStateful(buttonReply.conditions(), buttonReply.name());
+
+            DialogueFlow statefulDialogueFlow = new DialogueFlow(statefulConditions, buttonReply.action(), Collections.emptySet(), buttonReply.name());
+            nextReplies.add(statefulDialogueFlow);
+            return this;
+        }
+
         private static void runAction(DialogueFlowBuilder builder,
                                       Long chatId,
                                       BaseAbilityBot bot,
