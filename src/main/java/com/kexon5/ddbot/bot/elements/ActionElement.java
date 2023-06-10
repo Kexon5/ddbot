@@ -1,5 +1,6 @@
-package com.kexon5.ddbot.bot.services;
+package com.kexon5.ddbot.bot.elements;
 
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
 import com.kexon5.ddbot.statemachine.Element;
 import com.kexon5.ddbot.statemachine.MessageState;
@@ -55,7 +56,7 @@ public class ActionElement extends Element<ActionState> {
     @Override
     public DialogueFlow.DialogueFlowBuilder setAdditional(DialogueFlow.DialogueFlowBuilder builder) {
         return builder
-                .onlyIf(upd -> CALLBACK_QUERY.test(upd) && upd.getCallbackQuery().getData().equals(actionState.toString()));
+                .onlyIf(upd -> CALLBACK_QUERY.test(upd) && upd.getCallbackQuery().getData().equals(actionState.name()));
     }
 
     private Update createEmptyUpdate(Update update) {
@@ -98,7 +99,7 @@ public class ActionElement extends Element<ActionState> {
                     })
                     .validate(steps[i - 1]::validate)
                     .errorAction(steps[i - 1].errorText())
-                    .enableStats(steps[i].toString())
+                    .enableStats(steps[i].name())
                     .build();
 
             jumpMap.put(steps[i].name(), workingBuilder);
@@ -123,7 +124,7 @@ public class ActionElement extends Element<ActionState> {
 
                     bot.silent().execute(msg);
                 })
-                .enableStats(steps[0].toString());
+                .enableStats(steps[0].name());
     }
 
 

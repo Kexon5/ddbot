@@ -1,7 +1,8 @@
 package com.kexon5.ddbot.bot.services.mainmenu.actions;
 
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.Roles;
 import com.kexon5.ddbot.models.User;
 import com.kexon5.ddbot.repositories.UserRepository;
@@ -20,7 +21,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
-import static com.kexon5.ddbot.bot.services.ActionState.SIGN_UP_USER;
 import static com.kexon5.ddbot.models.RegistrationConstants.bloodGroups;
 import static com.kexon5.ddbot.models.RegistrationConstants.factors;
 import static com.kexon5.ddbot.utils.Utils.*;
@@ -30,9 +30,9 @@ public class SignUpUser extends ActionElement {
 
     private final UserRepository userRepository;
 
-    public SignUpUser(UserRepository userRepository) {
+    public SignUpUser(ActionState actionState, UserRepository userRepository) {
         super(
-                SIGN_UP_USER,
+                actionState,
                 userId -> false,
                 SignUpSteps.values()
         );

@@ -1,7 +1,7 @@
 package com.kexon5.ddbot.bot.services.administration;
 
-import com.kexon5.ddbot.bot.services.MenuElement;
-import com.kexon5.ddbot.bot.services.ServiceState;
+import com.kexon5.ddbot.bot.elements.MenuElement;
+import com.kexon5.ddbot.bot.states.ServiceState;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;

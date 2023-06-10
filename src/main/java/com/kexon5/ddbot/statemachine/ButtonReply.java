@@ -24,8 +24,8 @@ public class ButtonReply extends Reply {
         this.button = button;
     }
 
-    public static ButtonReplyBuilder builder(String callbackData, String buttonText) {
-        return new ButtonReplyBuilder(callbackData, buttonText);
+    public static ButtonReplyBuilder builder(String callbackData, String buttonText, boolean defaultValue) {
+        return new ButtonReplyBuilder(callbackData, buttonText, defaultValue);
     }
 
     public static class ButtonReplyBuilder {
@@ -44,8 +44,8 @@ public class ButtonReply extends Reply {
         private List<String> possibleValues;
         private int possibleValueIndex = 0;
 
-        public ButtonReplyBuilder(String callbackData, String buttonText) {
-            button(callbackData, buttonText);
+        public ButtonReplyBuilder(String callbackData, String buttonText, boolean defaultValue) {
+            button(callbackData, buttonText, defaultValue);
         }
 
 
@@ -64,6 +64,10 @@ public class ButtonReply extends Reply {
 
         public ButtonReplyBuilder button(String callbackData, String buttonText) {
             return button(callbackData, buttonText, DEFAULT_POSSIBLE_VALUES);
+        }
+
+        public ButtonReplyBuilder button(String callbackData, String buttonText, boolean defaultValue) {
+            return button(callbackData, buttonText, DEFAULT_POSSIBLE_VALUES, defaultValue ? 1 : 0);
         }
 
         public ButtonReplyBuilder button(String callbackData, String buttonText, List<String> possibleValues) {

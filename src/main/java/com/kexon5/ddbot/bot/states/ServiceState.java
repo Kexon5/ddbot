@@ -1,4 +1,4 @@
-package com.kexon5.ddbot.bot.services;
+package com.kexon5.ddbot.bot.states;
 
 import com.kexon5.ddbot.models.Roles;
 import com.kexon5.ddbot.models.User;
@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
-import static com.kexon5.ddbot.bot.services.ActionState.*;
+import static com.kexon5.ddbot.bot.states.ActionState.*;
 
 @Getter
 public enum ServiceState implements Buttonable {
@@ -31,10 +31,23 @@ public enum ServiceState implements Buttonable {
             Collections.EMPTY_LIST,
             List.of(CREATE_SCHEDULE, READ_SCHEDULE)
     ),
+    SERVICE_SWITCHER_MENU(
+            "⚙️Настройка сервисов",
+            Roles.ADMIN,
+            Collections.EMPTY_LIST,
+            Collections.EMPTY_LIST
+    ),
+    ACTION_SWITCHER_MENU(
+            "⚙️Настройка действий",
+            Roles.ADMIN,
+            Collections.EMPTY_LIST,
+            Collections.EMPTY_LIST
+    ),
     ADMINISTRATION_MENU(
             "⚙️Администрирование",
             Roles.HEAD,
-            Collections.EMPTY_LIST,
+//            Collections.EMPTY_LIST,
+            List.of(SERVICE_SWITCHER_MENU, ACTION_SWITCHER_MENU),
             List.of(GRANT_ROLES)
     ),
     MAIN_MENU(

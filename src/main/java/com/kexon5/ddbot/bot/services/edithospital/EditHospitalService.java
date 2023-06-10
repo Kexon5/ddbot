@@ -1,7 +1,7 @@
 package com.kexon5.ddbot.bot.services.edithospital;
 
-import com.kexon5.ddbot.bot.services.MenuElement;
-import com.kexon5.ddbot.bot.services.ServiceState;
+import com.kexon5.ddbot.bot.elements.MenuElement;
+import com.kexon5.ddbot.bot.states.ServiceState;
 import com.kexon5.ddbot.models.hospital.Hospital;
 import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.markup.BoldString;

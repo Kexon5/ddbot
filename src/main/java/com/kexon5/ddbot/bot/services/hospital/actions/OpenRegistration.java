@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.bot.services.hospital.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.services.RepositoryService;
 import lombok.RequiredArgsConstructor;
@@ -11,14 +12,16 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Predicate;
 
-import static com.kexon5.ddbot.bot.services.ActionState.OPEN_REGISTRATION;
 import static com.kexon5.ddbot.utils.Utils.*;
 
 public class OpenRegistration extends ActionElement {
 
-    public OpenRegistration(RepositoryService repositoryService) {
-        super(OPEN_REGISTRATION, OpenSteps.values());
+    public OpenRegistration(ActionState actionState,
+                            Predicate<Long> predicate,
+                            RepositoryService repositoryService) {
+        super(actionState, predicate, OpenSteps.values());
 
         OpenRegistration.OpenSteps.repositoryService = repositoryService;
     }

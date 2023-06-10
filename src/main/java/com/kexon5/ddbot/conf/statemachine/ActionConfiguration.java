@@ -1,6 +1,6 @@
 package com.kexon5.ddbot.conf.statemachine;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
 import com.kexon5.ddbot.bot.services.administration.actions.GrantRoles;
 import com.kexon5.ddbot.bot.services.edithospital.actions.AddHospital;
 import com.kexon5.ddbot.bot.services.edithospital.actions.EditHospital;
@@ -10,65 +10,107 @@ import com.kexon5.ddbot.bot.services.mainmenu.actions.CheckOutUser;
 import com.kexon5.ddbot.bot.services.mainmenu.actions.SignUpUser;
 import com.kexon5.ddbot.bot.services.schedule.actions.CreateSchedule;
 import com.kexon5.ddbot.bot.services.schedule.actions.ReadSchedule;
+import com.kexon5.ddbot.bot.states.ActionState;
+import com.kexon5.ddbot.models.ElementSetting;
+import com.kexon5.ddbot.repositories.ElementSettingRepository;
 import com.kexon5.ddbot.repositories.HospitalBackupRepository;
 import com.kexon5.ddbot.repositories.HospitalRepository;
 import com.kexon5.ddbot.repositories.UserRepository;
 import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.telegram.abilitybots.api.objects.ReplyCollection;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.kexon5.ddbot.bot.states.ActionState.*;
 
 @Configuration
 @DependsOn("dbContext")
 public class ActionConfiguration {
+
+    @Autowired
+    public RepositoryService repositoryService;
+    @Autowired
+    public ElementSettingRepository settingRepository;
+
+    public Predicate<Long> getAccessPredicate(ActionState state) {
+        if (!settingRepository.existsByElementName(state.name())) {
+            settingRepository.createNew(state.name(), ElementSetting.Type.ACTION);
+        }
+
+        Predicate<Long> userAccessCheck =  userId -> Optional.ofNullable(repositoryService.getUserByUserId(userId))
+                                                             .map(state.getAccessPredicate())
+                                                             .orElse(false);
+
+        Predicate<Long> stateWorkingCheck = userId -> settingRepository.isWorking(state.name(), ElementSetting.Type.ACTION);
+
+        return userAccessCheck.and(stateWorkingCheck);
+    }
+
     @Bean
     public SignUpUser signUpUser(UserRepository userRepository) {
-        return new SignUpUser(userRepository);
+        return new SignUpUser(SIGN_UP_USER, userRepository);
     }
 
     @Bean
     public CheckInUser checkInUser(RepositoryService repositoryService) {
-        return new CheckInUser(repositoryService);
+        return new CheckInUser(
+                CHECK_IN_USER,
+                getAccessPredicate(CHECK_IN_USER).and(userId ->
+                        !repositoryService.userHasActiveRecord(userId) && repositoryService.existOpenRecords()),
+                repositoryService
+        );
     }
 
     @Bean
     public CheckOutUser checkOutUser(RepositoryService repositoryService) {
-        return new CheckOutUser(repositoryService);
+        return new CheckOutUser(
+                CHECK_OUT_USER,
+                getAccessPredicate(CHECK_OUT_USER).and(repositoryService::userHasActiveRecord),
+                repositoryService
+        );
     }
 
     @Bean
     public AddHospital addHospital(HospitalRepository hospitalRepository) {
-        return new AddHospital(hospitalRepository);
+        return new AddHospital(ADD_HOSPITAL, getAccessPredicate(ADD_HOSPITAL), hospitalRepository);
     }
 
     @Bean
     public CreateSchedule createSchedule(RepositoryService repositoryService) {
-        return new CreateSchedule(repositoryService);
+        return new CreateSchedule(CREATE_SCHEDULE, getAccessPredicate(CREATE_SCHEDULE), repositoryService);
     }
 
     @Bean
     public ReadSchedule readSchedule(RepositoryService repositoryService) {
-        return new ReadSchedule(repositoryService);
+        return new ReadSchedule(READ_SCHEDULE, getAccessPredicate(READ_SCHEDULE), repositoryService);
     }
 
     @Bean
     public EditHospital editHospital(HospitalRepository hospitalRepository, HospitalBackupRepository hospitalBackupRepository) {
-        return new EditHospital(hospitalRepository, hospitalBackupRepository);
+        return new EditHospital(
+                EDIT_HOSPITAL,
+                getAccessPredicate(EDIT_HOSPITAL),
+                hospitalRepository,
+                hospitalBackupRepository
+        );
     }
 
     @Bean
     public OpenRegistration openRegistration(RepositoryService repositoryService) {
-        return new OpenRegistration(repositoryService);
+        return new OpenRegistration(OPEN_REGISTRATION, getAccessPredicate(OPEN_REGISTRATION), repositoryService);
     }
 
     @Bean
     public GrantRoles grantRoles(UserRepository userRepository) {
-        return new GrantRoles(userRepository);
+        return new GrantRoles(GRANT_ROLES, getAccessPredicate(GRANT_ROLES), userRepository);
     }
 
     @Bean
