@@ -3,7 +3,7 @@ package com.kexon5.ddbot.conf;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.sheets.v4.Sheets;
 import com.kexon5.ddbot.bot.DDBot;
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
 import com.kexon5.ddbot.repositories.*;
 import com.kexon5.ddbot.services.GoogleSettingsService;
 import com.kexon5.ddbot.services.MailingService;

@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.bot.services.schedule.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.markup.BoldString;
@@ -19,15 +20,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static com.kexon5.ddbot.bot.services.ActionState.READ_SCHEDULE;
 import static com.kexon5.ddbot.utils.Utils.*;
 
 public class ReadSchedule extends ActionElement {
 
-    public ReadSchedule(RepositoryService repositoryService) {
-        super(READ_SCHEDULE, ReadSteps.values());
+    public ReadSchedule(ActionState actionState,
+                        Predicate<Long> predicate,
+                        RepositoryService repositoryService) {
+        super(actionState, predicate, ReadSteps.values());
 
         ReadSteps.repositoryService = repositoryService;
     }

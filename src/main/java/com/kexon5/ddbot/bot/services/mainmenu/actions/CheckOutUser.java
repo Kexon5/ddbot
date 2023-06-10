@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.bot.services.mainmenu.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.markup.BoldString;
@@ -10,16 +11,18 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Predicate;
 
-import static com.kexon5.ddbot.bot.services.ActionState.CHECK_OUT_USER;
 import static com.kexon5.ddbot.utils.Utils.*;
 
 public class CheckOutUser extends ActionElement {
 
-    public CheckOutUser(RepositoryService repositoryService) {
+    public CheckOutUser(ActionState actionState,
+                        Predicate<Long> predicate,
+                        RepositoryService repositoryService) {
         super(
-                CHECK_OUT_USER,
-                repositoryService::userHasActiveRecord,
+                actionState,
+                predicate,
                 CheckOutSteps.values()
         );
 

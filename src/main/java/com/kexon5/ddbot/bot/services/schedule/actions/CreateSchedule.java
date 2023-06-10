@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.bot.services.schedule.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.services.RepositoryService;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
@@ -8,13 +9,14 @@ import org.bson.Document;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
-
-import static com.kexon5.ddbot.bot.services.ActionState.CREATE_SCHEDULE;
+import java.util.function.Predicate;
 
 public class CreateSchedule extends ActionElement {
 
-    public CreateSchedule(RepositoryService repositoryService) {
-        super(CREATE_SCHEDULE, CreateSteps.values());
+    public CreateSchedule(ActionState actionState,
+                          Predicate<Long> predicate,
+                          RepositoryService repositoryService) {
+        super(actionState, predicate, CreateSteps.values());
 
         CreateSteps.repositoryService = repositoryService;
     }

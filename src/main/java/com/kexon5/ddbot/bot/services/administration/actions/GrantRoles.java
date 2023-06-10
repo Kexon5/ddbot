@@ -1,7 +1,7 @@
 package com.kexon5.ddbot.bot.services.administration.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
-import com.kexon5.ddbot.bot.services.ActionState;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.Roles;
 import com.kexon5.ddbot.models.User;
 import com.kexon5.ddbot.repositories.UserRepository;
@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kexon5.ddbot.models.Roles.rolesMap;
@@ -24,8 +25,8 @@ import static com.kexon5.ddbot.utils.Utils.YES_NO;
 
 public class GrantRoles extends ActionElement {
 
-    public GrantRoles(UserRepository userRepository) {
-        super(ActionState.GRANT_ROLES, GrantSteps.values());
+    public GrantRoles(ActionState actionState, Predicate<Long> predicate, UserRepository userRepository) {
+        super(actionState, predicate, GrantSteps.values());
 
         GrantSteps.userRepository = userRepository;
     }

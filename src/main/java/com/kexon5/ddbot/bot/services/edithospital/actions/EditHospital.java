@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.bot.services.edithospital.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.hospital.Hospital;
 import com.kexon5.ddbot.models.hospital.HospitalBackup;
 import com.kexon5.ddbot.repositories.HospitalBackupRepository;
@@ -17,15 +18,18 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 
-import static com.kexon5.ddbot.bot.services.ActionState.EDIT_HOSPITAL;
 import static com.kexon5.ddbot.utils.Utils.YES;
 import static com.kexon5.ddbot.utils.Utils.YES_NO;
 
 public class EditHospital extends ActionElement {
 
-    public EditHospital(HospitalRepository hospitalRepository, HospitalBackupRepository hospitalBackupRepository) {
-        super(EDIT_HOSPITAL, EditSteps.values());
+    public EditHospital(ActionState actionState,
+                        Predicate<Long> predicate,
+                        HospitalRepository hospitalRepository,
+                        HospitalBackupRepository hospitalBackupRepository) {
+        super(actionState, predicate, EditSteps.values());
 
         EditSteps.hospitalRepository = hospitalRepository;
         EditSteps.hospitalBackupRepository = hospitalBackupRepository;

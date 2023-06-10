@@ -1,7 +1,7 @@
 package com.kexon5.ddbot.bot.services.mainmenu;
 
-import com.kexon5.ddbot.bot.services.MenuElement;
-import com.kexon5.ddbot.bot.services.ServiceState;
+import com.kexon5.ddbot.bot.elements.MenuElement;
+import com.kexon5.ddbot.bot.states.ServiceState;
 import com.kexon5.ddbot.repositories.UserRepository;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
 
@@ -30,7 +30,7 @@ public class MainMenuService extends MenuElement {
     public DialogueFlow.DialogueFlowBuilder setAdditional(DialogueFlow.DialogueFlowBuilder builder) {
         return builder.onlyIf(update -> userRepository.existsByUserId(getChatId(update)))
                 .onlyIf(update -> builder.getUserStateId(update) == -1
-                        || (CALLBACK_QUERY.test(update) && update.getCallbackQuery().getData().equals(elementState.toString())));
+                        || (CALLBACK_QUERY.test(update) && update.getCallbackQuery().getData().equals(elementState.name())));
     }
 
 }

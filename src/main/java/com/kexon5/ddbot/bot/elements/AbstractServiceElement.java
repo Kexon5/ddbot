@@ -1,5 +1,6 @@
-package com.kexon5.ddbot.bot.services;
+package com.kexon5.ddbot.bot.elements;
 
+import com.kexon5.ddbot.bot.states.ServiceState;
 import com.kexon5.ddbot.statemachine.Accessable;
 import com.kexon5.ddbot.statemachine.Buttonable;
 import com.kexon5.ddbot.statemachine.Element;

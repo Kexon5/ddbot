@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.bot.services.mainmenu.actions;
 
-import com.kexon5.ddbot.bot.services.ActionElement;
+import com.kexon5.ddbot.bot.elements.ActionElement;
+import com.kexon5.ddbot.bot.states.ActionState;
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.services.RepositoryService;
 import com.kexon5.ddbot.utils.Utils;
@@ -15,16 +16,17 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static com.kexon5.ddbot.bot.services.ActionState.CHECK_IN_USER;
 
 public class CheckInUser extends ActionElement {
 
-    public CheckInUser(RepositoryService repositoryService) {
+    public CheckInUser(ActionState actionState,
+                       Predicate<Long> predicate,
+                       RepositoryService repositoryService) {
         super(
-                CHECK_IN_USER,
-                userId -> !repositoryService.userHasActiveRecord(userId) && repositoryService.existOpenRecords(),
+                actionState,
+                predicate,
                 CheckInSteps.values()
         );
 
