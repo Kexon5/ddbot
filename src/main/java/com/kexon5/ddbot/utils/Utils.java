@@ -2,7 +2,6 @@ package com.kexon5.ddbot.utils;
 
 import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.utils.markup.BoldString;
-import lombok.Getter;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -23,11 +22,9 @@ public class Utils {
     public static final String MAN = "Прекрасный парень";
     public static final String WOMAN = "Прелестная девушка";
 
-    @Getter
     public static final ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder YES_NO =
             Utils.getReplyKeyboardMarkupBuilder(List.of(YES, NO));
 
-    @Getter
     public static final ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder W_M =
             Utils.getReplyKeyboardMarkupBuilder(List.of(MAN, WOMAN));
 
