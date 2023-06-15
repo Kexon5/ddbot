@@ -51,15 +51,40 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     @Field("STATE")
     @EqualsAndHashCode.Exclude
     private RecordState state;
+    @Field("RECORD_HASH")
+    @EqualsAndHashCode.Exclude
+    private int recordHash;
 
     public HospitalRecord(List<Object> data, LocalDate date) {
-        this.date = LocalDateTime.of(date, LocalTime.parse(data.get(0).toString(), DateTimeFormatter.ofPattern("H:mm")));
-        this.venue = data.get(1).toString();
-        this.hospital = data.get(2).toString();
-        this.type = data.get(3).toString();
-        this.peopleCount = Integer.parseInt(data.get(4).toString());
+        if (data.size() > 2) {
+            this.date = LocalDateTime.of(date, LocalTime.parse(data.get(0).toString(), DateTimeFormatter.ofPattern("H:mm")));
+            this.venue = data.get(1).toString();
+            this.hospital = data.get(2).toString();
+            this.type = data.get(3).toString();
+            this.peopleCount = Integer.parseInt(data.get(4).toString());
+        } else {
+            this.date = LocalDateTime.of(date, LocalTime.parse(data.get(0).toString(), DateTimeFormatter.ofPattern("H:mm")));
+            this.venue = "Студклуб";
+            this.hospital = "Студклуб";
+            this.type = "Обычный"; // TODO: 10.06.2023
+            this.peopleCount = Integer.parseInt(data.get(1).toString());
+        }
 
         this.state = RecordState.READY;
+        this.recordHash = hashCode();
+    }
+
+    public HospitalRecord(List<Object> data) {
+        LocalDate date = LocalDate.parse(data.get(0).toString(), DateTimeFormatter.ofPattern("dd.MM.yyyy"));
+        LocalTime time = LocalTime.parse(data.get(1).toString(), DateTimeFormatter.ofPattern("H:mm"));
+        this.date = LocalDateTime.of(date, time);
+        this.venue = data.get(2).toString();
+        this.hospital = data.get(3).toString();
+        this.type = data.get(4).toString();
+        this.peopleCount = Integer.parseInt(data.get(5).toString());
+
+        this.state = RecordState.READY;
+        this.recordHash = hashCode();
     }
 
     public LocalDate getLocalDate() {
@@ -104,7 +129,7 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     }
 
     public String toCommonString() {
-        return hospital + " - " + date.toLocalTime();
+        return hospital + " - " + getDateTimeForButton();
     }
 
     public String toDate() {

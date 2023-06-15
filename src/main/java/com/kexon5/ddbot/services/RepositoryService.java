@@ -1,6 +1,7 @@
 package com.kexon5.ddbot.services;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.kexon5.ddbot.models.TableOption;
 import com.kexon5.ddbot.models.User;
 import com.kexon5.ddbot.models.google.GoogleSetting;
 import com.kexon5.ddbot.models.hospital.Hospital;
@@ -8,17 +9,18 @@ import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.repositories.HospitalRecordRepository;
 import com.kexon5.ddbot.repositories.HospitalRepository;
 import com.kexon5.ddbot.repositories.UserRepository;
+import com.kexon5.ddbot.utils.Utils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -80,8 +82,27 @@ public class RepositoryService {
         return lastSchedule;
     }
 
+    public ReplyKeyboardMarkup getTablesMarkup() {
+        return Utils.getReplyKeyboardMarkupBuilder(TableOption.valueList).build();
+    }
+
+    public TableOption isTableOption(String userText) {
+        return Arrays.stream(TableOption.values())
+                     .filter(t -> t.getText().equals(userText))
+                     .findFirst()
+                     .orElse(null);
+    }
+
     public boolean existOpenRecords() {
         return hospitalRecordRepository.existsHospitalRecordByStateEquals(HospitalRecord.RecordState.OPEN);
+    }
+
+    public List<HospitalRecord> findAllHospitalRecordsByHash(Set<Integer> hashes) {
+        return hospitalRecordRepository.findHospitalRecordsByRecordHashIn(hashes);
+    }
+
+    public void deleteAllRecords(List<HospitalRecord> records) {
+        hospitalRecordRepository.deleteAll(records);
     }
 
 
@@ -89,10 +110,6 @@ public class RepositoryService {
         User user = userRepository.findByUserId(userId);
         consumer.accept(user);
         userRepository.save(user);
-    }
-
-    public void deleteAllByDateBetween(LocalDateTime date1, LocalDateTime date2) {
-        hospitalRecordRepository.deleteAllByDateBetween(date1, date2);
     }
 
     public List<User> findAllById(Iterable<ObjectId> ids) {
@@ -129,10 +146,10 @@ public class RepositoryService {
         }
     }
 
-    public List<List<Object>> readTable() {
-        return Optional.ofNullable(googleSettingsService.readTable(getSchedule().getGoogleId(), "Hospitals"))
-                .map(ValueRange::getValues)
-                .orElse(null);
+    public Map<TableOption, List<HospitalRecord>> readTable(TableOption option) {
+        Set<TableOption> loadingSet = option.getTableOptions();
+
+        return googleSettingsService.readTable(getSchedule().getGoogleId(), loadingSet);
     }
 
     public List<List<Object>> getHospitalsDataForSchedule() {
@@ -143,10 +160,6 @@ public class RepositoryService {
         List<Object> notes = getSimpleStringList(hospitals, Hospital::getNotes);
 
         return List.of(hospitalNames, contacts, requiredDocuments, notes);
-    }
-
-    public List<HospitalRecord> findAllRecords(LocalDateTime date1, LocalDateTime date2) {
-        return hospitalRecordRepository.findAllByDateBetween(date1, date2);
     }
 
     public void saveRecords(List<HospitalRecord> records) {

@@ -5,13 +5,16 @@ import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.Permission;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.kexon5.ddbot.models.TableOption;
 import com.kexon5.ddbot.models.google.GoogleSetting;
+import com.kexon5.ddbot.models.hospital.HospitalRecord;
 import com.kexon5.ddbot.repositories.GoogleSettingRepository;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class GoogleSettingsService {
@@ -113,6 +116,17 @@ public class GoogleSettingsService {
         return newSetting;
     }
 
+    public Map<TableOption, List<HospitalRecord>> readTable(String sheetId, Set<TableOption> ranges) {
+        return ranges.stream()
+                     .collect(Collectors.toMap(r -> r,
+                                               r -> Optional.ofNullable(readTable(sheetId, r.getNamedField()))
+                                                            .map(r::getRecords)
+                                                            .orElse(Collections.emptyList())
+                                               // TODO: 10.06.2023 пронос ошибки
+                     ));
+    }
+
+    @Nullable
     public ValueRange readTable(String sheetId, String range) {
         try {
             return sheets.spreadsheets()
