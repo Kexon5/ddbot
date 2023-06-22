@@ -35,7 +35,7 @@ public abstract class InteractiveMenuElement extends AbstractServiceElement {
     public DialogueFlow.DialogueFlowBuilder createReplyFlow() {
         DialogueFlow.DialogueFlowBuilder builder = DialogueFlow.builder(dbContext)
                                                                .enableStats(elementState.name())
-                                                               .action((bot, update) -> bot.silent().execute(getMessage(update)));
+                                                               .actionService(this::getMessage);
 
         for (ButtonReply buttonReply : buttonReplies) {
             builder.next(buttonReply);

@@ -109,7 +109,7 @@ public class ActionElement extends Element<ActionState> {
         }
 
         return workingBuilder
-                .action((bot, update) -> {
+                .actionStart((bot, update) -> {
                     long userId = getChatId(update);
 
                     steps[0].init(userId);

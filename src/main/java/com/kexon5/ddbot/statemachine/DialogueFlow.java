@@ -3,13 +3,19 @@ package com.kexon5.ddbot.statemachine;
 import org.telegram.abilitybots.api.bot.BaseAbilityBot;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.Reply;
+import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -39,6 +45,12 @@ public class DialogueFlow extends Reply {
         return nextReplies;
     }
 
+
+    @Override
+    public String toString() {
+        return name();
+    }
+
     @Override
     public Stream<Reply> stream() {
         return Stream.concat(nextReplies.stream().flatMap(Reply::stream), Stream.of(this));
@@ -46,7 +58,10 @@ public class DialogueFlow extends Reply {
 
     public static class DialogueFlowBuilder {
         public static final String STATES = "user_state_replies";
+        public static final String MSGS = "user_last_menu_msgs";
         public static final String ERROR_COUNTER = "user_errors";
+
+        public static final Map<Long, MessageHolder> msgs = new ConcurrentHashMap<>();
 
         public static final int MAX_ERROR = 3;
         private static final AtomicInteger replyCounter = new AtomicInteger();
@@ -57,8 +72,7 @@ public class DialogueFlow extends Reply {
         private BiConsumer<BaseAbilityBot, Update> action;
         private BiConsumer<BaseAbilityBot, Update> postAction;
         private BiConsumer<BaseAbilityBot, Update> errorAction = (bot, upd) -> {};
-        private BiConsumer<BaseAbilityBot, Update> exitAction = sendMessage("Слишком много ошибок!\nВозвращение в главное меню")
-                .andThen(BaseAbilityBot::onUpdateReceived);
+        private BiConsumer<BaseAbilityBot, Update> exitAction = sendMessage("Слишком много ошибок!\nВозвращение в главное меню");
 
         private final Set<Reply> nextReplies;
         private String name;
@@ -78,6 +92,46 @@ public class DialogueFlow extends Reply {
 
         public DialogueFlowBuilder action(BiConsumer<BaseAbilityBot, Update> action) {
             this.action = action;
+            return this;
+        }
+
+        public DialogueFlowBuilder action(Function<Update, BotApiMethod<? extends Serializable>> action) {
+            this.action = (bot, upd) -> bot.silent().execute(action.apply(upd));
+            return this;
+        }
+
+        private BotApiMethod<? extends Serializable> changedMsg(BotApiMethod<? extends Serializable> tmpMsg, long userId) {
+            if (tmpMsg instanceof EditMessageText) {
+                return SendMessage.builder()
+                                  .chatId(userId)
+                                  .text(((EditMessageText) tmpMsg).getText())
+                                  .parseMode("Markdown")
+                                  .replyMarkup(
+                                          ((EditMessageText) tmpMsg).getReplyMarkup())
+                                  .build();
+            }
+
+            return tmpMsg;
+        }
+
+        public DialogueFlowBuilder actionService(Function<Update, BotApiMethod<? extends Serializable>> action) {
+            this.action = (bot, update) -> {
+                long userId = getChatId(update);
+
+                Optional.of(action.apply(update))
+                        .ifPresent(tmpMsg -> bot.silent().execute(tmpMsg)
+                                            .map(responseMsg -> (Message) responseMsg)
+                                            .ifPresent(responseMsg -> msgs.put(userId, new MessageHolder(changedMsg(tmpMsg, userId),
+                                                                                        responseMsg.getMessageId()
+                           ))));
+
+            };
+            return this;
+        }
+
+        public DialogueFlowBuilder actionStart(BiConsumer<BaseAbilityBot, Update> action) {
+            this.action = ((BiConsumer<BaseAbilityBot, Update>) (bot, update) -> msgs.remove(getChatId(update)))
+                    .andThen(action);
             return this;
         }
 
@@ -142,14 +196,31 @@ public class DialogueFlow extends Reply {
             return this;
         }
 
-        private static void runAction(DialogueFlowBuilder builder,
-                                      Long chatId,
-                                      BaseAbilityBot bot,
-                                      Update upd) {
+        private static BiConsumer<BaseAbilityBot, Update> runAction(DialogueFlowBuilder builder,
+                                                                    Long chatId,
+                                                                    BaseAbilityBot bot,
+                                                                    Update upd) {
             builder.action.accept(bot, upd);
             if (builder.nextReplies.size() > 0 || CALLBACK_QUERY.test(upd)) {
                 builder.db.<Long, Integer>getMap(STATES).put(chatId, builder.id);
             }
+
+            return builder.postAction;
+        }
+
+
+        private BiConsumer<BaseAbilityBot, Update> errorHandler(BaseAbilityBot bot, Update upd, long chatId) {
+            Map<Long, Integer> errorMap = db.getMap(ERROR_COUNTER);
+            int errorNumber = errorMap.getOrDefault(chatId, 1);
+            if (errorNumber < MAX_ERROR) {
+                errorAction.accept(bot, upd);
+                errorMap.put(chatId, errorNumber + 1);
+                return null;
+            }
+
+            errorMap.remove(chatId);
+            exitAction.accept(bot, upd);
+            return BaseAbilityBot::onUpdateReceived;
         }
 
         public DialogueFlow build() {
@@ -159,34 +230,17 @@ public class DialogueFlow extends Reply {
             BiConsumer<BaseAbilityBot, Update> statefulAction = (bot, upd) -> {
                 Long chatId = getChatId(upd);
 
-                if (validateCond.test(upd)) {
-                    runAction(this, chatId, bot, upd);
-                } else {
-                    if (jumpFlow != null) {
-                        runAction(jumpFlow, chatId, bot, upd);
-                        if (jumpFlow.postAction != null) {
-                            db.<Long, Integer>getMap(STATES).remove(getChatId(upd));
-                            jumpFlow.postAction.accept(bot, upd);
-                        }
-                    } else {
-                        Map<Long, Integer> errorMap = db.getMap(ERROR_COUNTER);
-                        int errorNumber = errorMap.getOrDefault(chatId, 1);
-                        if (errorNumber < MAX_ERROR) {
-                            errorAction.accept(bot, upd);
-                            errorMap.put(chatId, errorNumber + 1);
-                        } else {
-                            errorMap.remove(chatId);
-                            exitAction.accept(bot, upd);
-                        }
-                    }
-                }
-            };
+                BiConsumer<BaseAbilityBot, Update> localPostAction = validateCond.test(upd)
+                        ? runAction(this, chatId, bot, upd)
+                        : jumpFlow != null
+                                ? runAction(jumpFlow, chatId, bot, upd)
+                                : errorHandler(bot, upd, chatId);
 
-            if (postAction != null) {
-                statefulAction = statefulAction
-                        .andThen((bot, upd) -> db.<Long, Integer>getMap(STATES).remove(getChatId(upd)))
-                        .andThen(postAction);
-            }
+                Optional.ofNullable(localPostAction).ifPresent(act -> {
+                    db.<Long, Integer>getMap(STATES).remove(chatId);
+                    act.accept(bot, upd);
+                });
+            };
 
             return new DialogueFlow(conds, statefulAction, nextReplies, name);
         }

@@ -16,7 +16,9 @@ public interface MessageState {
     default BotApiMethod<? extends Serializable> getMessage(Update update) {
         return getMessage(
                 getChatId(update),
-                CALLBACK_QUERY.test(update) ? update.getCallbackQuery().getMessage().getMessageId() : null,
+                CALLBACK_QUERY.test(update)
+                        ? update.getCallbackQuery().getMessage().getMessageId()
+                        : null,
                 MESSAGE.test(update)
                         ? update.getMessage().getText()
                         : null
