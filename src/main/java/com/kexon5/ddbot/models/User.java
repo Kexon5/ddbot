@@ -48,7 +48,7 @@ public class User {
     private String kellFactor;
 
     @Field("ACTIVE_RECORD")
-    private ObjectId activeRecord;
+    private Integer activeRecord;
 
     @Field("ROLES")
     private Set<Roles> roles;

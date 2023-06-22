@@ -15,4 +15,6 @@ public interface HospitalRecordRepository extends MongoRepository<HospitalRecord
 
     List<HospitalRecord> findHospitalRecordsByRecordHashIn(Set<Integer> hashes);
 
+    HospitalRecord findByRecordHash(Integer hash);
+
 }

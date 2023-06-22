@@ -188,7 +188,7 @@ public class RepositoryService {
 
     public HospitalRecord getUserActiveRecord(long userId) {
         return Optional.ofNullable(getUserByUserId(userId).getActiveRecord())
-                       .flatMap(hospitalRecordRepository::findById)
+                       .map(hospitalRecordRepository::findByRecordHash)
                        .orElse(null);
     }
 }

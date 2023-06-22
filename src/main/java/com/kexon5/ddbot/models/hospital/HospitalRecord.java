@@ -105,7 +105,7 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     }
 
     public boolean addUser(User user) {
-        user.setActiveRecord(id);
+        user.setActiveRecord(recordHash);
         return users.add(user.getId());
     }
 

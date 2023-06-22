@@ -5,11 +5,14 @@ import com.kexon5.ddbot.bot.states.ServiceState;
 import com.kexon5.ddbot.statemachine.DialogueFlow;
 import com.kexon5.ddbot.statemachine.Element;
 import lombok.Getter;
+import lombok.Setter;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.objects.Message;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import static com.kexon5.ddbot.bot.states.ActionState.BACK;
@@ -21,6 +24,8 @@ public abstract class MenuElement extends AbstractServiceElement {
     private final List<ServiceState> subServices;
     private final List<ActionState> subActions;
 
+    @Setter
+    public static Map<Long, Message> historyMap;
 
     protected MenuElement(ServiceState serviceState) {
         this(serviceState, null);
@@ -38,7 +43,7 @@ public abstract class MenuElement extends AbstractServiceElement {
     public DialogueFlow.DialogueFlowBuilder createReplyFlow() {
         DialogueFlow.DialogueFlowBuilder builder = DialogueFlow.builder(dbContext)
                                                                .enableStats(elementState.name())
-                                                               .action((bot, update) -> bot.silent().execute(getMessage(update)));
+                                                               .actionService(this::getMessage);
 
         for (ServiceState subService : subServices) {
             AbstractServiceElement element = (AbstractServiceElement) registry.get(subService);
@@ -64,7 +69,7 @@ public abstract class MenuElement extends AbstractServiceElement {
 
     @Override
     public BotApiMethod<? extends Serializable> getMessage(Long userId, Integer msgId, @Nullable String userText) {
-        return userText != null
+        return userText != null || msgId == null
                 ? sendMessage(userId, userText)
                 : editMessage(userId, msgId);
     }
