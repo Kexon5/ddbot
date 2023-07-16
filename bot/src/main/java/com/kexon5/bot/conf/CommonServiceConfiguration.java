@@ -2,16 +2,16 @@ package com.kexon5.bot.conf;
 
 import com.google.api.services.drive.Drive;
 import com.google.api.services.sheets.v4.Sheets;
-import com.kexon5.bot.bot.DDBot;
 import com.kexon5.bot.bot.BotWebsocketClient;
+import com.kexon5.bot.bot.DDBot;
 import com.kexon5.bot.repositories.GoogleSettingRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
 import com.kexon5.bot.services.GoogleSettingsService;
 import com.kexon5.bot.services.MailingService;
+import com.kexon5.bot.services.MethodUnicaster;
 import com.kexon5.bot.services.RepositoryService;
 import com.kexon5.bot.statemachine.Element;
-import com.kexon5.bot.services.MethodUnicaster;
 import com.kexon5.common.models.ActiveEnvironment;
 import com.kexon5.common.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,9 +60,8 @@ public class CommonServiceConfiguration {
     }
 
     @Bean
-    public MailingService taskManager(ThreadPoolTaskScheduler threadPoolTaskScheduler,
-                                      DDBot bot) {
-        return new MailingService(threadPoolTaskScheduler, bot);
+    public MailingService taskManager(ThreadPoolTaskScheduler threadPoolTaskScheduler) {
+        return new MailingService(threadPoolTaskScheduler);
     }
 
     @Bean

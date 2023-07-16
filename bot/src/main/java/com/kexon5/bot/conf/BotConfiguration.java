@@ -5,6 +5,7 @@ import com.kexon5.bot.bot.services.mainmenu.MainMenuService;
 import com.kexon5.bot.conf.statemachine.ServiceConfiguration;
 import com.kexon5.bot.listeners.BotFinishListener;
 import com.kexon5.bot.listeners.BotStartListener;
+import com.kexon5.bot.services.MailingService;
 import com.kexon5.bot.services.MethodUnicaster;
 import com.kexon5.common.models.ActiveEnvironment;
 import com.kexon5.common.repositories.ActiveEnvironmentRepository;
@@ -14,6 +15,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.ReplyCollection;
+import org.telegram.abilitybots.api.sender.SilentSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 
 @Configuration
@@ -62,6 +64,14 @@ public class BotConfiguration  {
         DDBot bot = new DDBot(botName, options, dbContext, actionReplyCollection, mainMenu, methodUnicaster);
         bot.onRegister();
         return bot;
+    }
+
+    @Bean
+    public SilentSender silentSender(MailingService mailingService,
+                                     DDBot bot) {
+        SilentSender sender = bot.silent();
+        mailingService.setSender(sender);
+        return sender;
     }
 
 }

@@ -6,7 +6,7 @@ import com.kexon5.bot.bot.states.ActionState;
 import com.kexon5.bot.statemachine.DialogueFlow;
 import com.kexon5.bot.utils.Utils;
 import com.kexon5.bot.utils.markup.BoldString;
-import com.kexon5.common.models.Roles;
+import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
 import com.kexon5.common.repositories.UserRepository;
 import lombok.Setter;
@@ -249,7 +249,7 @@ public class SignUpUser extends ActionElement {
                                                    .sex(sex)
                                                    .phoneNumber(phoneNumber)
                                                    .groupNumber(groupNumber)
-                                                   .roles(Roles.donor);
+                                                   .roles(Role.donor);
 
                 StringBuilder sb = new StringBuilder("Суммарная информация о Вас:\n")
                         .append(new BoldString("\n\nВаше имя:\n")).append(name)

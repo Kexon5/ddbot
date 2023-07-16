@@ -54,7 +54,7 @@ public class User {
     private Integer activeRecord;
 
     @Field("ROLES")
-    private Set<Roles> roles;
+    private Set<Role> roles;
 
 
     public String toShortString() {
