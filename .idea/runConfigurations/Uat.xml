@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Uat" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" folderName="Bot">
+    <module name="bot" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.kexon5.bot.DdBotApplication" />
+    <option name="VM_PARAMETERS" value="-Dspring.config.additional-location=../private/local.properties -Denv=uat -Dserver.port=8003 -Dthreads.count=2" />
+    <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
