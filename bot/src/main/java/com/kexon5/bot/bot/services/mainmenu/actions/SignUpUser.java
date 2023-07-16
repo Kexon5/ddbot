@@ -12,6 +12,7 @@ import com.kexon5.common.repositories.UserRepository;
 import lombok.Setter;
 import org.bson.Document;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 
 import javax.annotation.Nonnull;
@@ -283,11 +284,14 @@ public class SignUpUser extends ActionElement {
             }
         },
         FINAL {
+
             @Override
-            public void finalAction(long userId, @Nullable String userText, Document document) {
-                User user = document.get("FORM", User.UserBuilder.class)
-                                    .userId(userId)
-                                    .build();
+            public void finalAction(Update update) {
+                long userId = getChatId(update);
+                User user = contextMap.get(userId).get("FORM", User.UserBuilder.class)
+                                      .userId(userId)
+                                      .username(update.getMessage().getFrom().getUserName())
+                                      .build();
 
                 userRepository.save(user);
             }

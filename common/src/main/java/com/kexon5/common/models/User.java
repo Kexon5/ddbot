@@ -23,6 +23,9 @@ public class User {
     @Field("USER_ID")
     private long userId;
 
+    @Field("USERNAME")
+    private String username;
+
     @Field("NAME")
     private String name;
 
