@@ -2,6 +2,7 @@ package com.kexon5.bot.conf.statemachine;
 
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.services.administration.actions.GrantRoles;
+import com.kexon5.bot.bot.services.administration.actions.MailingByRole;
 import com.kexon5.bot.bot.services.edithospital.actions.AddHospital;
 import com.kexon5.bot.bot.services.edithospital.actions.EditHospital;
 import com.kexon5.bot.bot.services.hospital.actions.OpenRegistration;
@@ -15,6 +16,7 @@ import com.kexon5.bot.models.ElementSetting;
 import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.HospitalBackupRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
+import com.kexon5.bot.services.MailingService;
 import com.kexon5.bot.services.RepositoryService;
 import com.kexon5.bot.statemachine.DialogueFlow;
 import com.kexon5.common.repositories.UserRepository;
@@ -111,6 +113,11 @@ public class ActionConfiguration {
     @Bean
     public GrantRoles grantRoles(UserRepository userRepository) {
         return new GrantRoles(GRANT_ROLES, getAccessPredicate(GRANT_ROLES), userRepository);
+    }
+
+    @Bean
+    public MailingByRole mailingByRole(UserRepository userRepository, MailingService mailingService) {
+        return new MailingByRole(MAILING_BY_ROLE, getAccessPredicate(MAILING_BY_ROLE), userRepository, mailingService);
     }
 
     @Bean

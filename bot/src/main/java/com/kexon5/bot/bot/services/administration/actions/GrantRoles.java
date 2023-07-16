@@ -5,7 +5,7 @@ import com.kexon5.bot.bot.states.ActionState;
 import com.kexon5.bot.utils.Utils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.bot.utils.markup.MarkupList;
-import com.kexon5.common.models.Roles;
+import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
 import com.kexon5.common.repositories.UserRepository;
 import org.bson.Document;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.kexon5.bot.utils.Utils.YES;
 import static com.kexon5.bot.utils.Utils.YES_NO;
-import static com.kexon5.common.models.Roles.rolesMap;
+import static com.kexon5.common.models.Role.rolesMap;
 
 public class GrantRoles extends ActionElement {
 
@@ -51,7 +51,7 @@ public class GrantRoles extends ActionElement {
             @Override
             public List<User> validate(long userId, String userText, Document document) throws Exception {
                 User callUser = document.get("CALL_USER", User.class);
-                Set<Roles> callUserRoles = callUser.getRoles();
+                Set<Role> callUserRoles = callUser.getRoles();
 
                 List<User> users = userRepository.findAllByNameContainsIgnoreCase(userText).stream()
                                                  .filter(user -> user.getRoles().size() < callUserRoles.size())
@@ -116,11 +116,11 @@ public class GrantRoles extends ActionElement {
         STEP4 {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                Set<Roles> callUserRoles = document.get("CALL_USER", User.class).getRoles();
+                Set<Role> callUserRoles = document.get("CALL_USER", User.class).getRoles();
 
-                List<Roles> possibleGrantRoles = callUserRoles.stream()
-                                                              .sorted(Comparator.comparingInt(Enum::ordinal))
-                                                              .toList();
+                List<Role> possibleGrantRoles = callUserRoles.stream()
+                                                             .sorted(Comparator.comparingInt(Enum::ordinal))
+                                                             .toList();
 
                 document.append("GRANT_ROLES", possibleGrantRoles);
                 builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(possibleGrantRoles).build());
@@ -132,9 +132,9 @@ public class GrantRoles extends ActionElement {
             }
 
             @Override
-            public Roles validate(long userId, String userText, Document document) {
-                Roles role = Roles.valueOf(userText);
-                return document.getList("GRANT_ROLES", Roles.class).contains(role)
+            public Role validate(long userId, String userText, Document document) {
+                Role role = Role.valueOf(userText);
+                return document.getList("GRANT_ROLES", Role.class).contains(role)
                         ? role
                         : null;
             }
@@ -144,9 +144,9 @@ public class GrantRoles extends ActionElement {
             public void finalAction(long userId, @Nullable String userText, Document document) {
                 if (document.containsKey(STEP3.name())) {
                     User user = document.get(STEP2.name(), User.class);
-                    Roles rolesGroup = document.get(STEP4.name(), Roles.class);
+                    Role roleGroup = document.get(STEP4.name(), Role.class);
 
-                    user.setRoles(rolesMap.get(rolesGroup));
+                    user.setRoles(rolesMap.get(roleGroup));
                     userRepository.save(user);
                 }
             }

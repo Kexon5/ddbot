@@ -1,9 +1,11 @@
 package com.kexon5.bot.services;
 
-import com.kexon5.bot.bot.DDBot;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.telegram.abilitybots.api.sender.SilentSender;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -15,7 +17,8 @@ import java.time.temporal.TemporalUnit;
 public class MailingService {
 
     private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
-    private final DDBot bot;
+    @Setter
+    private SilentSender sender;
 
     public void addBeforeDateMsg(String msg,
                                  long userId,
@@ -23,7 +26,7 @@ public class MailingService {
                                  long timeShift,
                                  TemporalUnit temporalUnit) {
         threadPoolTaskScheduler.schedule(
-                () -> bot.silent().send(msg, userId),
+                () -> sender.send(msg, userId),
                 timePoint.minus(timeShift, temporalUnit).toInstant(ZoneOffset.ofHours(3))
         );
     }
@@ -33,8 +36,13 @@ public class MailingService {
                                 LocalDateTime timePoint,
                                 long timeShift,
                                 TemporalUnit temporalUnit) {
+        SendMessage sendMessage = SendMessage.builder()
+                                             .text(msg)
+                                             .chatId(userId)
+                                             .parseMode("Markdown")
+                                             .build();
         threadPoolTaskScheduler.schedule(
-                () -> bot.silent().send(msg, userId),
+                () -> sender.executeAsync(sendMessage, c -> {}),
                 timePoint.plus(timeShift, temporalUnit).toInstant(ZoneOffset.ofHours(3))
         );
     }
@@ -44,7 +52,7 @@ public class MailingService {
                                  long timeShift,
                                  TemporalUnit temporalUnit) {
         threadPoolTaskScheduler.schedule(
-                () -> bot.silent().execute(msg),
+                () -> sender.executeAsync(msg),
                 timePoint.minus(timeShift, temporalUnit).toInstant(ZoneOffset.ofHours(3))
         );
     }
@@ -54,7 +62,7 @@ public class MailingService {
                                 long timeShift,
                                 TemporalUnit temporalUnit) {
         threadPoolTaskScheduler.schedule(
-                () -> bot.silent().execute(msg),
+                () -> sender.executeAsync(msg),
                 timePoint.plus(timeShift, temporalUnit).toInstant(ZoneOffset.ofHours(3))
         );
     }
@@ -63,7 +71,7 @@ public class MailingService {
                                  long timeShift,
                                  TemporalUnit temporalUnit) {
         threadPoolTaskScheduler.scheduleAtFixedRate(
-                () -> bot.silent().execute(msg),
+                () -> sender.executeAsync(msg),
                 Duration.of(timeShift, temporalUnit)
         );
     }
