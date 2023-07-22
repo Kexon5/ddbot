@@ -33,7 +33,7 @@ public class OpenRegistration extends ActionElement {
             public void initAction(long userId, Document userDocument) {
                 List<HospitalRecord> records = repositoryService.getAllRecords(HospitalRecord.RecordState.READY);
 
-                userDocument.append("RECORDS", records);
+                userDocument.append(RECORDS, records);
             }
 
             @Override
@@ -43,7 +43,7 @@ public class OpenRegistration extends ActionElement {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
-                List<HospitalRecord> records = document.getList("RECORDS", HospitalRecord.class);
+                List<HospitalRecord> records = document.getList(RECORDS, HospitalRecord.class);
 
                 StringBuilder sb = new StringBuilder();
 
@@ -70,7 +70,7 @@ public class OpenRegistration extends ActionElement {
             @Override
             public void finalAction(long userId, @Nullable String userText, Document document) {
                 if (document.getString(GET.name()).equals(YES)) {
-                    List<HospitalRecord> records = document.getList("RECORDS", HospitalRecord.class);
+                    List<HospitalRecord> records = document.getList(RECORDS, HospitalRecord.class);
                     records.forEach(r -> r.setState(HospitalRecord.RecordState.OPEN));
                     repositoryService.saveRecords(records);
                 }
@@ -88,6 +88,8 @@ public class OpenRegistration extends ActionElement {
                         : "Успешно ничего не сделано";
             }
         };
+
+        private static final String RECORDS = "RECORDS";
 
         private static RepositoryService repositoryService;
     }

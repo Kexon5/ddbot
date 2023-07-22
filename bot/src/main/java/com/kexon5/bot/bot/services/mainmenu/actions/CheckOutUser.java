@@ -31,7 +31,7 @@ public class CheckOutUser extends ActionElement {
 
     @RequiredArgsConstructor
     public enum CheckOutSteps implements ActionMessageState {
-        STEP1 {
+        CONFIRM_CHECK_OUT {
             @Override
             public void initAction(long userId, Document userDocument) {
                 userDocument.append(RECORD, repositoryService.getUserActiveRecord(userId));
@@ -57,10 +57,10 @@ public class CheckOutUser extends ActionElement {
             }
 
         },
-        STEP2 {
+        CHECKOUT_RESULT {
             @Override
             public void finalAction(long userId, @Nullable String userText, Document userDocument) {
-                if (userDocument.getString(STEP1.name()).equals(YES)) {
+                if (userDocument.getString(CONFIRM_CHECK_OUT.name()).equals(YES)) {
                     HospitalRecord record = userDocument.get(RECORD, HospitalRecord.class);
                     repositoryService.checkOutUser(record, userId);
                 }
@@ -68,7 +68,7 @@ public class CheckOutUser extends ActionElement {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document userDocument) {
-                return userDocument.getString(STEP1.name()).equals(YES)
+                return userDocument.getString(CONFIRM_CHECK_OUT.name()).equals(YES)
                         ? "Ваша запись успешно удалена"
                         : "Успешно ничего не сделано";
             }

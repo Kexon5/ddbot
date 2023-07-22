@@ -35,11 +35,11 @@ public class MailingByRole extends ActionElement {
     }
 
     public enum MailingSteps implements ActionMessageState {
-        STEP1 {
+        MESSAGE_INPUT {
 
             @Override
             public void initAction(long userId, Document userDocument) {
-                userDocument.append("CALL_USER", userRepository.findByUserId(userId));
+                userDocument.append(CALL_USER, userRepository.findByUserId(userId));
             }
 
             @Override
@@ -53,18 +53,18 @@ public class MailingByRole extends ActionElement {
             }
 
         },
-        STEP2 {
+        CHOOSE_ROLE {
 
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                Set<Role> callUserRoles = document.get("CALL_USER", User.class).getRoles();
+                Set<Role> callUserRoles = document.get(CALL_USER, User.class).getRoles();
 
-                List<Role> possibleGrantRoles = callUserRoles.stream()
+                List<Role> possibleMailingRoles = callUserRoles.stream()
                                                              .sorted(Comparator.comparingInt(Enum::ordinal))
                                                              .toList();
 
-                document.append("GRANT_ROLES", possibleGrantRoles);
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(possibleGrantRoles).build());
+                document.append(MAILING_ROLES, possibleMailingRoles);
+                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(possibleMailingRoles).build());
             }
 
             @Override
@@ -75,12 +75,12 @@ public class MailingByRole extends ActionElement {
             @Override
             public Role validate(long userId, String userText, Document document) {
                 Role role = Role.valueOf(userText);
-                return document.getList("GRANT_ROLES", Role.class).contains(role)
+                return document.getList(MAILING_ROLES, Role.class).contains(role)
                         ? role
                         : null;
             }
         },
-        STEP3 {
+        SEND_TIME {
 
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
@@ -99,7 +99,7 @@ public class MailingByRole extends ActionElement {
                         : null;
             }
         },
-        STEP4 {
+        CHECK_MAILING {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
                 builder.replyMarkup(YES_NO.build());
@@ -108,9 +108,9 @@ public class MailingByRole extends ActionElement {
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 return "Пожалуйста, проверьте данные рассылки" +
-                        new BoldString("\n\nОтправляемое сообщение\n") + document.getString(STEP1.name()) +
-                        new BoldString("\n\nРоль получателей\n") + document.get(STEP2.name()).toString() +
-                        new BoldString("\n\nКогда отправить\n") + document.getString(STEP3.name()) +
+                        new BoldString("\n\nОтправляемое сообщение\n") + document.getString(MESSAGE_INPUT.name()) +
+                        new BoldString("\n\nРоль получателей\n") + document.get(CHOOSE_ROLE.name()).toString() +
+                        new BoldString("\n\nКогда отправить\n") + document.getString(SEND_TIME.name()) +
                         new BoldString("\n\nВсё верно?");
             }
 
@@ -121,7 +121,7 @@ public class MailingByRole extends ActionElement {
                         : null;
             }
         },
-        STEP5 {
+        MAILING_RESULT {
 
             private void addMessage(String msg, User user, long shift) {
                 mailingService.addAfterDateMsg(msg + new BoldString("\n\nАвтор: @" + user.getUsername()), user.getUserId(), LocalDateTime.now(), shift, ChronoUnit.HOURS);
@@ -129,10 +129,10 @@ public class MailingByRole extends ActionElement {
 
             @Override
             public void finalAction(long userId, @Nullable String userText, Document document) {
-                if (document.getString(STEP4.name()).equals(YES)) {
-                    String msg = document.getString(STEP1.name());
-                    Role role = document.get(STEP2.name(), Role.class);
-                    long shift = document.getString(STEP3.name()).equals(NOW) ? 0 : 1;
+                if (document.getString(CHECK_MAILING.name()).equals(YES)) {
+                    String msg = document.getString(MESSAGE_INPUT.name());
+                    Role role = document.get(CHOOSE_ROLE.name(), Role.class);
+                    long shift = document.getString(SEND_TIME.name()).equals(NOW) ? 0 : 1;
 
                     userRepository.findAll().stream()
                             .filter(user -> user.getRoles().contains(role))
@@ -142,11 +142,14 @@ public class MailingByRole extends ActionElement {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
-                return document.getString(STEP4.name()).equals(YES)
+                return document.getString(CHECK_MAILING.name()).equals(YES)
                         ? "Успешно выполнено"
                         : "Ничего не сделано";
             }
         };
+
+        private static final String MAILING_ROLES = "MAILING_ROLES";
+        private static final String CALL_USER = "CALL_USER";
 
 
         private static final String NOW = "Сейчас";

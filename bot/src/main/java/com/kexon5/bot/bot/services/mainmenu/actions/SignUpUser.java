@@ -283,7 +283,7 @@ public class SignUpUser extends ActionElement {
                         : null;
             }
         },
-        FINAL {
+        SIGN_UP_RESULT {
 
             @Override
             public void finalAction(Update update) {

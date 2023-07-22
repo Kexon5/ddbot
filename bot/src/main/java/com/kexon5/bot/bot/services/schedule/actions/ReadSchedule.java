@@ -95,10 +95,10 @@ public class ReadSchedule extends ActionElement {
                           .append(users);
                     }
 
-                    userDocument.append("REMOVE_RECORDS", existRecords);
+                    userDocument.append(REMOVE_RECORDS, existRecords);
                 }
 
-                userDocument.append("RECORDS", tableData.values().stream()
+                userDocument.append(RECORDS, tableData.values().stream()
                                                         .flatMap(Collection::stream)
                                                         .toList());
 
@@ -129,10 +129,10 @@ public class ReadSchedule extends ActionElement {
             public void finalAction(long userId, @Nullable String userText, Document document) {
                 if (document.getString(READ.name()).equals(YES)) {
 
-                    Optional.ofNullable(document.getList("REMOVE_RECORDS", HospitalRecord.class))
+                    Optional.ofNullable(document.getList(REMOVE_RECORDS, HospitalRecord.class))
                             .ifPresent(repositoryService::deleteAllRecords);
 
-                    repositoryService.saveRecords(document.getList("RECORDS", HospitalRecord.class));
+                    repositoryService.saveRecords(document.getList(RECORDS, HospitalRecord.class));
                 }
             }
 
@@ -148,6 +148,10 @@ public class ReadSchedule extends ActionElement {
                         : "Успешно ничего не сделано";
             }
         };
+
+
+        private static final String RECORDS = "RECORDS";
+        private static final String REMOVE_RECORDS = "REMOVE_RECORDS";
 
         private static RepositoryService repositoryService;
 
