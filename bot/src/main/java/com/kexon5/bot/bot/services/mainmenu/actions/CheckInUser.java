@@ -35,21 +35,20 @@ public class CheckInUser extends ActionElement {
 
     @RequiredArgsConstructor
     public enum CheckInSteps implements ActionMessageState {
-        PLACE_NAME {
+        SELECT_HOSPITAL {
             @Override
             public void initAction(long userId, Document userDocument) {
                 List<HospitalRecord> records = repositoryService.getAllRecords(HospitalRecord.RecordState.OPEN).stream()
                                                                 .filter(HospitalRecord::hasPlace)
                                                                 .toList();
 
-                userDocument.append("RECORDS", records)
-                            .append("RECORDS_MAP", new Document(records.stream()
+                userDocument.append(RECORDS_DOC, new Document(records.stream()
                                                                        .collect(Collectors.groupingBy(HospitalRecord::getHospital, Collectors.toList()))));
             }
 
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                Document recordsForMsg = document.get("RECORDS_MAP", Document.class);
+                Document recordsForMsg = document.get(RECORDS_DOC, Document.class);
 
                 builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(recordsForMsg.keySet()).build());
             }
@@ -60,7 +59,7 @@ public class CheckInUser extends ActionElement {
                         .append("Свободные записи")
                         .append(":\n\n");
 
-                document.get("RECORDS_MAP", Document.class).forEach((key, value) -> sb.append(new BoldString(key))
+                document.get(RECORDS_DOC, Document.class).forEach((key, value) -> sb.append(new BoldString(key))
                                                         .append("\nДаты выездов:\n")
                                                         .append(new MarkupList<>(((List<HospitalRecord>)value).stream()
                                                                                       .map(HospitalRecord::getDateTimeForButton)
@@ -73,18 +72,19 @@ public class CheckInUser extends ActionElement {
 
             @Override
             public List<HospitalRecord> validate(long userId, String userText, Document document) {
-                Document recordsForMsg = document.get("RECORDS_MAP", Document.class);
+                Document recordsForMsg = document.get(RECORDS_DOC, Document.class);
 
                 return recordsForMsg.containsKey(userText)
-                        ? ((List<HospitalRecord>)recordsForMsg.get(userText))
+                        ? recordsForMsg.getList(userText, HospitalRecord.class)
                         : null;
             }
 
         },
-        STEP1 {
+        SELECT_TIME {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder builder1 = Utils.getReplyKeyboardMarkupBuilder(document.getList(PLACE_NAME.name(), HospitalRecord.class).stream()
+                ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder builder1 = Utils.getReplyKeyboardMarkupBuilder(document.getList(
+                                                                                                                              SELECT_HOSPITAL.name(), HospitalRecord.class).stream()
                                                                                                                       .map(HospitalRecord::getDateTimeForButton)
                                                                                                                       .toList());
                 builder.replyMarkup(builder1.build());
@@ -93,7 +93,7 @@ public class CheckInUser extends ActionElement {
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 return "Записи в ОПК " + userText + ":\n\nДаты выездов:\n" +
-                        new MarkupList<>(document.getList(PLACE_NAME.name(), HospitalRecord.class).stream()
+                        new MarkupList<>(document.getList(SELECT_HOSPITAL.name(), HospitalRecord.class).stream()
                                                  .map(HospitalRecord::getDateTimeForButton)
                                                  .toList()) +
                         "\n" + new BoldString("Выберите время");
@@ -101,16 +101,16 @@ public class CheckInUser extends ActionElement {
 
             @Override
             public HospitalRecord validate(long userId, String userText, Document document) {
-                return document.getList(PLACE_NAME.name(), HospitalRecord.class).stream()
+                return document.getList(SELECT_HOSPITAL.name(), HospitalRecord.class).stream()
                                .filter(r -> r.getDateTimeForButton().equals(userText))
                                .findAny()
                                .orElse(null);
             }
         },
-        STEP2 {
+        CHECK_IN_RESULT {
             @Override
             public void finalAction(long userId, @Nullable String userText, Document document) {
-                HospitalRecord answer = document.get(STEP1.name(), HospitalRecord.class);
+                HospitalRecord answer = document.get(SELECT_TIME.name(), HospitalRecord.class);
 
                 // todo add valid step
                 repositoryService.checkInUser(answer, userId);
@@ -123,10 +123,12 @@ public class CheckInUser extends ActionElement {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
-                return document.get(STEP1.name(), HospitalRecord.class).getUsers().toString();
+                return document.get(SELECT_TIME.name(), HospitalRecord.class).getUsers().toString();
             }
 
         };
+
+        private static final String RECORDS_DOC = "RECORDS_DOC";
 
         private static RepositoryService repositoryService;
 

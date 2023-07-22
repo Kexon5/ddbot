@@ -32,15 +32,15 @@ public class GrantRoles extends ActionElement {
     }
 
     public enum GrantSteps implements ActionMessageState {
-        STEP1 {
+        USER_INPUT {
             @Override
             public void initAction(long userId, Document userDocument) {
-                userDocument.append("CALL_USER", userRepository.findByUserId(userId));
+                userDocument.append(CALL_USER, userRepository.findByUserId(userId));
             }
 
             @Override
             public String jumpStateName() {
-                return STEP3.name();
+                return CONFIRM_USER.name();
             }
 
             @Override
@@ -50,7 +50,7 @@ public class GrantRoles extends ActionElement {
 
             @Override
             public List<User> validate(long userId, String userText, Document document) throws Exception {
-                User callUser = document.get("CALL_USER", User.class);
+                User callUser = document.get(CALL_USER, User.class);
                 Set<Role> callUserRoles = callUser.getRoles();
 
                 List<User> users = userRepository.findAllByNameContainsIgnoreCase(userText).stream()
@@ -63,15 +63,15 @@ public class GrantRoles extends ActionElement {
                     return users;
                 }
 
-                document.append(STEP2.name(), users.get(0));
+                document.append(USER_NUMBER.name(), users.get(0));
                 return null;
             }
         },
-        STEP2 {
+        USER_NUMBER {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
-                List<String> users = document.getList(STEP1.name(), User.class).stream()
+                List<String> users = document.getList(USER_INPUT.name(), User.class).stream()
                                              .map(User::toShortString)
                                              .collect(Collectors.toCollection(MarkupList::new));
 
@@ -81,7 +81,7 @@ public class GrantRoles extends ActionElement {
 
             @Override
             public User validate(long userId, String userText, Document document) {
-                List<User> users = document.getList(STEP1.name(), User.class);
+                List<User> users = document.getList(USER_INPUT.name(), User.class);
                 int index = Integer.parseInt(userText) - 1;
 
                 return index < users.size() && index >= 0
@@ -89,10 +89,10 @@ public class GrantRoles extends ActionElement {
                         : null;
             }
         },
-        STEP3 {
+        CONFIRM_USER {
             @Override
             public String jumpStateName() {
-                return STEP5.name();
+                return GRANT_RESULT.name();
             }
 
             @Override
@@ -103,7 +103,7 @@ public class GrantRoles extends ActionElement {
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
                 return new BoldString("Вы хотите дать права следующему пользователю?\n\n")
-                        + document.get(STEP2.name(), User.class).toShortString();
+                        + document.get(USER_NUMBER.name(), User.class).toShortString();
             }
 
             @Override
@@ -113,16 +113,16 @@ public class GrantRoles extends ActionElement {
                         : null;
             }
         },
-        STEP4 {
+        ROLE_LEVEL {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                Set<Role> callUserRoles = document.get("CALL_USER", User.class).getRoles();
+                Set<Role> callUserRoles = document.get(CALL_USER, User.class).getRoles();
 
                 List<Role> possibleGrantRoles = callUserRoles.stream()
                                                              .sorted(Comparator.comparingInt(Enum::ordinal))
                                                              .toList();
 
-                document.append("GRANT_ROLES", possibleGrantRoles);
+                document.append(GRANT_ROLES, possibleGrantRoles);
                 builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(possibleGrantRoles).build());
             }
 
@@ -134,17 +134,17 @@ public class GrantRoles extends ActionElement {
             @Override
             public Role validate(long userId, String userText, Document document) {
                 Role role = Role.valueOf(userText);
-                return document.getList("GRANT_ROLES", Role.class).contains(role)
+                return document.getList(GRANT_ROLES, Role.class).contains(role)
                         ? role
                         : null;
             }
         },
-        STEP5 {
+        GRANT_RESULT {
             @Override
             public void finalAction(long userId, @Nullable String userText, Document document) {
-                if (document.containsKey(STEP3.name())) {
-                    User user = document.get(STEP2.name(), User.class);
-                    Role roleGroup = document.get(STEP4.name(), Role.class);
+                if (document.containsKey(CONFIRM_USER.name())) {
+                    User user = document.get(USER_NUMBER.name(), User.class);
+                    Role roleGroup = document.get(ROLE_LEVEL.name(), Role.class);
 
                     user.setRoles(rolesMap.get(roleGroup));
                     userRepository.save(user);
@@ -153,11 +153,15 @@ public class GrantRoles extends ActionElement {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
-                return document.containsKey(STEP3.name())
+                return document.containsKey(CONFIRM_USER.name())
                         ? "Права успешно предоставлены"
                         : "Ничего не сделано";
             }
         };
+
+
+        private static final String GRANT_ROLES = "GRANT_ROLES";
+        private static final String CALL_USER = "CALL_USER";
 
         private static UserRepository userRepository;
     }
