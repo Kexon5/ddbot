@@ -12,7 +12,7 @@ import static com.kexon5.bot.bot.states.ServiceState.MAIN_MENU;
 public class MenuConfiguration {
 
     @Bean
-    @DependsOn({"hospitalsMenu", "editHospitalsMenu", "administrationMenu", "scheduleMenu", "actionSwitcher", "serviceSwitcher"})
+    @DependsOn({"hospitalsMenu", "editHospitalsMenu", "administrationMenu", "scheduleMenu", "actionSwitcher", "serviceSwitcher", "accountSettingsSwitcher", "accountRecordService", "accountService"})
     public MainMenuService mainMenu(UserRepository userRepository) {
         return new MainMenuService(MAIN_MENU, userRepository);
     }

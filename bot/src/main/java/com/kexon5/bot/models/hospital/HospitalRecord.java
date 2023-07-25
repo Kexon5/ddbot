@@ -105,12 +105,12 @@ public class HospitalRecord implements Comparable<HospitalRecord> {
     }
 
     public boolean addUser(User user) {
-        user.setActiveRecord(recordHash);
+        user.addRecord(id);
         return users.add(user.getId());
     }
 
     public boolean removeUser(User user) {
-        user.setActiveRecord(null);
+        user.removeRecord(id);
         return users.remove(user.getId());
     }
 

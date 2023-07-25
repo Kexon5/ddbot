@@ -50,7 +50,7 @@ public class RepositoryService {
                                       .peek(rec -> rec.setState(HospitalRecord.RecordState.OUTDATED))
                                       .map(HospitalRecord::getUsers)
                                       .flatMap(users -> userRepository.findAllById(users).stream())
-                                      .peek(user -> user.setActiveRecord(null))
+                                      .peek(user -> user.setRecords(null))
                                       .toList();
 
         userRepository.saveAll(usersList);
@@ -183,12 +183,16 @@ public class RepositoryService {
     }
 
     public boolean userHasActiveRecord(long userId) {
-        return getUserByUserId(userId).getActiveRecord() != null;
+        return getUserActiveRecord(userId) != null;
     }
 
     public HospitalRecord getUserActiveRecord(long userId) {
-        return Optional.ofNullable(getUserByUserId(userId).getActiveRecord())
-                       .map(hospitalRecordRepository::findByRecordHash)
+        return Optional.ofNullable(getUserByUserId(userId).getRecords())
+                .map(records -> records.isEmpty()
+                        ? null
+                        : records.get(records.size() - 1))
+                .filter(recordPair -> recordPair.getMiddle().equals(User.UserRecordStatus.REGISTERED))
+                       .map(recordPair -> hospitalRecordRepository.findById(recordPair.getLeft()).get())
                        .orElse(null);
     }
 }
