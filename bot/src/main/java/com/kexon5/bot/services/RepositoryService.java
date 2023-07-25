@@ -39,24 +39,6 @@ public class RepositoryService {
 
     private final UserRepository userRepository;
 
-
-    @Scheduled(fixedRate = 1L, timeUnit = TimeUnit.DAYS)
-    public void dailyTask() {
-        List<HospitalRecord> records = hospitalRecordRepository.findAllByStateEquals(HospitalRecord.RecordState.CLOSED).stream()
-                                                               .filter(record -> record.getDate().isBefore(LocalDateTime.now()))
-                                                               .toList();
-
-        List<User> usersList = records.stream()
-                                      .peek(rec -> rec.setState(HospitalRecord.RecordState.OUTDATED))
-                                      .map(HospitalRecord::getUsers)
-                                      .flatMap(users -> userRepository.findAllById(users).stream())
-                                      .peek(user -> user.setRecords(null))
-                                      .toList();
-
-        userRepository.saveAll(usersList);
-        hospitalRecordRepository.saveAll(records);
-    }
-
     @Getter
     private GoogleSetting lastSchedule;
 
@@ -126,6 +108,9 @@ public class RepositoryService {
     public void checkInUser(HospitalRecord record, long userId) {
         userAction(userId, user -> {
             record.addUser(user);
+
+            if (!record.hasPlace()) record.setState(HospitalRecord.RecordState.CLOSED);
+
             saveRecord(record);
         });
     }

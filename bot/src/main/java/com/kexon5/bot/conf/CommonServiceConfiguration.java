@@ -7,10 +7,7 @@ import com.kexon5.bot.bot.DDBot;
 import com.kexon5.bot.repositories.GoogleSettingRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
-import com.kexon5.bot.services.GoogleSettingsService;
-import com.kexon5.bot.services.MailingService;
-import com.kexon5.bot.services.MethodUnicaster;
-import com.kexon5.bot.services.RepositoryService;
+import com.kexon5.bot.services.*;
 import com.kexon5.bot.statemachine.Element;
 import com.kexon5.common.models.ActiveEnvironment;
 import com.kexon5.common.repositories.UserRepository;
@@ -20,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.db.MapDBContext;
+import org.telegram.abilitybots.api.sender.SilentSender;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -69,6 +67,13 @@ public class CommonServiceConfiguration {
         DBContext test = MapDBContext.offlineInstance("TEST");
         Element.setDbContext(test);
         return test;
+    }
+
+    @Bean
+    public NotificationRecordService notificationRecordService(HospitalRecordRepository hospitalRecordRepository,
+                                                               UserRepository userRepository,
+                                                               SilentSender sender) {
+        return new NotificationRecordService(hospitalRecordRepository, userRepository, sender);
     }
 
 //    @Bean

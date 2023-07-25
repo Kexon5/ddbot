@@ -15,6 +15,8 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -39,7 +41,6 @@ public class CheckInUser extends ActionElement {
             @Override
             public void initAction(long userId, Document userDocument) {
                 List<HospitalRecord> records = repositoryService.getAllRecords(HospitalRecord.RecordState.OPEN).stream()
-                                                                .filter(HospitalRecord::hasPlace)
                                                                 .toList();
 
                 userDocument.append(RECORDS_DOC, new Document(records.stream()
@@ -123,7 +124,13 @@ public class CheckInUser extends ActionElement {
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document document) {
-                return document.get(SELECT_TIME.name(), HospitalRecord.class).getUsers().toString();
+                var record = document.get(SELECT_TIME.name(), HospitalRecord.class);
+                long durationHours = Duration.between(LocalDateTime.now(), record.getDate()).toHours();
+
+                return "Поздравляем Вас с успешной записью!" +
+                        (durationHours >= 48 && durationHours <= 72
+                                ? "\n\nТак как Вы поздно записываетесь, то хотим напомнить Вам о диете донора" //todo Добавить текста
+                                : "");
             }
 
         };
