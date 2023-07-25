@@ -51,10 +51,28 @@ public enum ServiceState implements Buttonable {
             List.of(SERVICE_SWITCHER_MENU, ACTION_SWITCHER_MENU),
             List.of(GRANT_ROLES, MAILING_BY_ROLE)
     ),
+    ACCOUNT_SETTINGS_SWITCHER(
+            "Мои настройки",
+            Role.DONOR,
+            Collections.EMPTY_LIST,
+            Collections.EMPTY_LIST
+    ),
+    ACCOUNT_RECORD_MENU(
+            "Информация о моих выездах",
+            Role.DONOR,
+            Collections.EMPTY_LIST,
+            Collections.EMPTY_LIST
+    ),
+    ACCOUNT_MENU(
+            "Настройка профиля",
+            Role.DONOR,
+            List.of(ACCOUNT_RECORD_MENU, ACCOUNT_SETTINGS_SWITCHER),
+            Collections.EMPTY_LIST
+    ),
     MAIN_MENU(
             "🏡Вернуться в главное меню",
             Role.DONOR,
-            List.of(HOSPITALS_MENU, SCHEDULE_MENU, ADMINISTRATION_MENU),
+            List.of(HOSPITALS_MENU, SCHEDULE_MENU, ADMINISTRATION_MENU, ACCOUNT_MENU),
             List.of(CHECK_IN_USER, CHECK_OUT_USER, SIGN_UP_USER)
     );
 

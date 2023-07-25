@@ -1,5 +1,8 @@
 package com.kexon5.bot.conf.statemachine;
 
+import com.kexon5.bot.bot.services.account.AccountRecordService;
+import com.kexon5.bot.bot.services.account.AccountService;
+import com.kexon5.bot.bot.services.account.AccountSettingsSwitcher;
 import com.kexon5.bot.bot.services.administration.ActionSwitcher;
 import com.kexon5.bot.bot.services.administration.AdministrationService;
 import com.kexon5.bot.bot.services.administration.ServiceSwitcher;
@@ -9,16 +12,16 @@ import com.kexon5.bot.bot.services.schedule.ScheduleService;
 import com.kexon5.bot.bot.states.ServiceState;
 import com.kexon5.bot.models.ElementSetting;
 import com.kexon5.bot.repositories.ElementSettingRepository;
+import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.services.RepositoryService;
 import com.kexon5.bot.statemachine.ButtonReply;
+import com.kexon5.common.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -113,6 +116,23 @@ public class ServiceConfiguration {
                 getAccessPredicate(ACTION_SWITCHER_MENU),
                 getBuilders(actionSettings, ACTION_SWITCHER_MENU)
         );
+    }
+
+    @Bean
+    public AccountSettingsSwitcher accountSettingsSwitcher() {
+        return new AccountSettingsSwitcher(ACCOUNT_SETTINGS_SWITCHER, getAccessPredicate(ACCOUNT_SETTINGS_SWITCHER), Collections.emptyList());
+    }
+
+    @Bean
+    public AccountRecordService accountRecordService(UserRepository userRepository,
+                                                     HospitalRecordRepository hospitalRecordRepository) {
+        return new AccountRecordService(ACCOUNT_RECORD_MENU, getAccessPredicate(ACCOUNT_RECORD_MENU),
+                                        userRepository, hospitalRecordRepository);
+    }
+
+    @Bean
+    public AccountService accountService() {
+        return new AccountService(ACCOUNT_MENU, getAccessPredicate(ACCOUNT_MENU));
     }
 
 }

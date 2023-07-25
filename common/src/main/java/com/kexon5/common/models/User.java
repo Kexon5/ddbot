@@ -3,12 +3,15 @@ package com.kexon5.common.models;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.tuple.MutableTriple;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -16,6 +19,13 @@ import java.util.Set;
 @Builder
 @Document(collection = "USERS")
 public class User {
+
+    public enum UserRecordStatus {
+        REGISTERED,
+        BAD_MISSED,
+        GOOD_MISSED,
+        PASSED
+    }
 
     @Id
     private ObjectId id;
@@ -50,8 +60,8 @@ public class User {
     @Field("KELL_FACTOR")
     private String kellFactor;
 
-    @Field("ACTIVE_RECORD")
-    private Integer activeRecord;
+    @Field("RECORDS")
+    private List<MutableTriple<ObjectId, UserRecordStatus, String>> records = new ArrayList<>();
 
     @Field("ROLES")
     private Set<Role> roles;
@@ -60,4 +70,14 @@ public class User {
     public String toShortString() {
         return name + ", Дата рождения: " + birthday + ", Роли: " + roles;
     }
+
+
+    public void addRecord(ObjectId recordId) {
+        records.add(MutableTriple.of(recordId, UserRecordStatus.REGISTERED, ""));
+    }
+
+    public void removeRecord(ObjectId recordId) {
+        records.remove(records.size() - 1);
+    }
+
 }
