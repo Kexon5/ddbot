@@ -1,12 +1,10 @@
 package com.kexon5.bot.bot;
 
 import com.kexon5.bot.bot.services.mainmenu.MainMenuService;
-import com.kexon5.bot.statemachine.DialogueFlow;
-import com.kexon5.bot.statemachine.MessageHolder;
 import com.kexon5.bot.services.MethodUnicaster;
+import com.kexon5.common.statemachine.DialogueFlow;
+import com.kexon5.common.statemachine.MessageHolder;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.telegram.abilitybots.api.bot.AbilityBot;
 import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.objects.ReplyCollection;
@@ -19,35 +17,32 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import java.io.Serializable;
 import java.util.function.Consumer;
 
-import static com.kexon5.bot.statemachine.DialogueFlow.DialogueFlowBuilder.msgs;
+import static com.kexon5.common.statemachine.DialogueFlow.DialogueFlowBuilder.msgs;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
-@Slf4j
+
 @Getter
 public class DDBot extends AbilityBot {
 
-    @Value("${creatorId:-1}")
-    private long creatorId;
+    private final long creatorId;
 
     private final ReplyCollection actionReplyCollection;
-    private final MainMenuService mainMenu;
+    private final DialogueFlow mainMenu;
     private final MethodUnicaster methodUnicaster;
 
     public DDBot(String botUsername,
-                 DefaultBotOptions options,
                  DBContext dbContext,
+                 DefaultBotOptions options,
+                 long creatorId,
                  ReplyCollection actionReplyCollection,
                  MainMenuService mainMenu,
                  MethodUnicaster methodUnicaster) {
         super("", botUsername, dbContext, options);
 
+        this.creatorId = creatorId;
         this.actionReplyCollection = actionReplyCollection;
-        this.mainMenu = mainMenu;
+        this.mainMenu = mainMenu.getReplyFlowBuilder().build();
         this.methodUnicaster = methodUnicaster;
-    }
-
-    public DialogueFlow getMenuFlow() {
-        return mainMenu.getReplyFlowBuilder().build();
     }
 
     @Override

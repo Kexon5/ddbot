@@ -16,7 +16,6 @@ import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kexon5.bot.utils.Utils.YES;
@@ -25,8 +24,8 @@ import static com.kexon5.common.models.Role.rolesMap;
 
 public class GrantRoles extends ActionElement {
 
-    public GrantRoles(ActionState actionState, Predicate<Long> predicate, UserRepository userRepository) {
-        super(actionState, predicate, GrantSteps.values());
+    public GrantRoles(ActionState actionState, UserRepository userRepository) {
+        super(actionState, GrantSteps.values());
 
         GrantSteps.userRepository = userRepository;
     }

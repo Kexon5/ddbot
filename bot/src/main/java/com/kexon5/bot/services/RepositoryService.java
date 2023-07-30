@@ -1,28 +1,30 @@
 package com.kexon5.bot.services;
 
 import com.google.api.services.sheets.v4.model.ValueRange;
+import com.kexon5.bot.models.ElementSetting;
 import com.kexon5.bot.models.TableOption;
 import com.kexon5.bot.models.google.GoogleSetting;
 import com.kexon5.bot.models.hospital.Hospital;
 import com.kexon5.bot.models.hospital.HospitalRecord;
+import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
 import com.kexon5.bot.utils.Utils;
 import com.kexon5.common.models.User;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.statemachine.Accessable;
+import com.kexon5.common.statemachine.Element;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kexon5.bot.models.hospital.Hospital.getSimpleStringList;
@@ -38,6 +40,7 @@ public class RepositoryService {
     private final HospitalRecordRepository hospitalRecordRepository;
 
     private final UserRepository userRepository;
+    private final ElementSettingRepository settingRepository;
 
     @Getter
     private GoogleSetting lastSchedule;
@@ -180,4 +183,21 @@ public class RepositoryService {
                        .map(recordPair -> hospitalRecordRepository.findById(recordPair.getLeft()).get())
                        .orElse(null);
     }
+
+    public <T extends Element<? extends Accessable>> T fillAccessPredicate(T serviceOrAction, ElementSetting.Type type) {
+        if (!settingRepository.existsByElementName(serviceOrAction.name())) {
+            settingRepository.createNew(serviceOrAction.name(), type);
+        }
+
+        Predicate<Long> userAccessCheck = userId -> Optional.ofNullable(userRepository.findByUserId(userId))
+                                                            .map(serviceOrAction::hasAccess)
+                                                            .orElse(false);
+
+        Predicate<Long> stateWorkingCheck = userId -> settingRepository.isWorking(serviceOrAction.name());
+
+        serviceOrAction.setAccessPredicate(userAccessCheck.and(stateWorkingCheck));
+
+        return serviceOrAction;
+    }
+
 }

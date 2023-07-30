@@ -10,9 +10,6 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
-import org.telegram.telegrambots.meta.api.methods.botapimethods.BotApiMethodMessage;
-import org.telegram.telegrambots.meta.api.methods.send.SendLocation;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 
 import java.util.List;
 import java.util.function.Function;
@@ -43,25 +40,6 @@ public class Hospital {
     private MarkupList<String> notes;
     @Field("CONTACT_INFO")
     private MarkupList<String> contactInfo;
-
-    public List<BotApiMethodMessage> getMessage(Long chatId) {
-        return List.of(getLocation(chatId), getPlaceInfo(chatId));
-    }
-
-    public SendLocation getLocation(Long chatId) {
-        return SendLocation.builder()
-                .chatId(chatId)
-                .longitude(coords.get(0))
-                .latitude(coords.get(1))
-                .build();
-    }
-
-    public SendMessage getPlaceInfo(Long chatId) {
-        return SendMessage.builder()
-                .chatId(chatId)
-                .text(getPlaceInfoText(true))
-                .build();
-    }
 
     public String getPlaceInfoText(boolean forAdmins) {
         StringBuilder sb = new StringBuilder().append(name).append("\n");

@@ -4,13 +4,14 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.sheets.v4.Sheets;
 import com.kexon5.bot.bot.BotWebsocketClient;
 import com.kexon5.bot.bot.DDBot;
+import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.GoogleSettingRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
 import com.kexon5.bot.services.*;
-import com.kexon5.bot.statemachine.Element;
 import com.kexon5.common.models.ActiveEnvironment;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.statemachine.Element;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,12 +39,14 @@ public class CommonServiceConfiguration {
     public RepositoryService repositoryService(GoogleSettingsService googleSettingsService,
                                                HospitalRepository hospitalRepository,
                                                HospitalRecordRepository hospitalRecordRepository,
-                                               UserRepository userRepository) {
+                                               UserRepository userRepository,
+                                               ElementSettingRepository settingRepository) {
         return new RepositoryService(
                 googleSettingsService,
                 hospitalRepository,
                 hospitalRecordRepository,
-                userRepository
+                userRepository,
+                settingRepository
         );
     }
 

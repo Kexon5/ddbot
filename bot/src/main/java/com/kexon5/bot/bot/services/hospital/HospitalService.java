@@ -6,7 +6,6 @@ import com.kexon5.bot.bot.states.ServiceState;
 import com.kexon5.bot.utils.markup.MarkupList;
 
 import javax.annotation.Nullable;
-import java.util.function.Predicate;
 
 public class HospitalService extends MenuElement {
 
@@ -18,9 +17,8 @@ public class HospitalService extends MenuElement {
                     .build()
     );
 
-    public HospitalService(ServiceState state,
-                           Predicate<Long> accessPredicate) {
-        super(state, accessPredicate);
+    public HospitalService(ServiceState state) {
+        super(state);
     }
 
     @Override

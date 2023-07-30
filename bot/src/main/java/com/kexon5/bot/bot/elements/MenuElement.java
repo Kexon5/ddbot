@@ -2,8 +2,8 @@ package com.kexon5.bot.bot.elements;
 
 import com.kexon5.bot.bot.states.ActionState;
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.statemachine.DialogueFlow;
-import com.kexon5.bot.statemachine.Element;
+import com.kexon5.common.statemachine.DialogueFlow;
+import com.kexon5.common.statemachine.Element;
 import lombok.Getter;
 import lombok.Setter;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Predicate;
 
 import static com.kexon5.bot.bot.states.ActionState.BACK;
 import static com.kexon5.bot.bot.states.ServiceState.MAIN_MENU;
@@ -28,12 +27,7 @@ public abstract class MenuElement extends AbstractServiceElement {
     public static Map<Long, Message> historyMap;
 
     protected MenuElement(ServiceState serviceState) {
-        this(serviceState, null);
-    }
-
-    protected MenuElement(ServiceState serviceState,
-                          @Nullable Predicate<Long> accessPredicate) {
-        super(serviceState, accessPredicate);
+        super(serviceState);
 
         this.subServices = serviceState.getServicesList();
         this.subActions = serviceState.getActionsList();
@@ -68,7 +62,7 @@ public abstract class MenuElement extends AbstractServiceElement {
     }
 
     @Override
-    public BotApiMethod<? extends Serializable> getMessage(Long userId, Integer msgId, @Nullable String userText) {
+    public BotApiMethod<? extends Serializable> getMessage(long userId, Integer msgId, @Nullable String userText) {
         return userText != null || msgId == null
                 ? sendMessage(userId, userText)
                 : editMessage(userId, msgId);

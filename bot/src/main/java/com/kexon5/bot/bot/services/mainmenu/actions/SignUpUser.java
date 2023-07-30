@@ -3,12 +3,13 @@ package com.kexon5.bot.bot.services.mainmenu.actions;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
-import com.kexon5.bot.statemachine.DialogueFlow;
 import com.kexon5.bot.utils.Utils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
+import com.kexon5.common.models.UserSettings;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.statemachine.DialogueFlow;
 import lombok.Setter;
 import org.bson.Document;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -20,6 +21,7 @@ import javax.annotation.Nullable;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kexon5.bot.models.RegistrationConstants.bloodGroups;
@@ -32,14 +34,15 @@ public class SignUpUser extends ActionElement {
     private final UserRepository userRepository;
 
     public SignUpUser(ActionState actionState, UserRepository userRepository) {
-        super(
-                actionState,
-                userId -> false,
-                SignUpSteps.values()
-        );
+        super(actionState, SignUpSteps.values());
 
         this.userRepository = userRepository;
         SignUpSteps.setUserRepository(userRepository);
+    }
+
+    @Override
+    public void setAccessPredicate(Predicate<Long> accessPredicate) {
+        super.setAccessPredicate(userId -> false);
     }
 
     @Override
@@ -291,6 +294,7 @@ public class SignUpUser extends ActionElement {
                 User user = contextMap.get(userId).get("FORM", User.UserBuilder.class)
                                       .userId(userId)
                                       .username(update.getMessage().getFrom().getUserName())
+                                      .userSettings(UserSettings.getDefault())
                                       .build();
 
                 userRepository.save(user);

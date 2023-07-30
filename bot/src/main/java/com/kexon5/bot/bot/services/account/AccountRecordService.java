@@ -8,7 +8,6 @@ import com.kexon5.common.repositories.UserRepository;
 import org.apache.commons.lang3.tuple.MutableTriple;
 
 import javax.annotation.Nullable;
-import java.util.function.Predicate;
 
 public class AccountRecordService extends MenuElement {
 
@@ -16,10 +15,9 @@ public class AccountRecordService extends MenuElement {
     private final HospitalRecordRepository hospitalRecordRepository;
 
     public AccountRecordService(ServiceState state,
-                                Predicate<Long> accessPredicate,
                                 UserRepository userRepository,
                                 HospitalRecordRepository hospitalRecordRepository) {
-        super(state, accessPredicate);
+        super(state);
 
         this.userRepository = userRepository;
         this.hospitalRecordRepository = hospitalRecordRepository;

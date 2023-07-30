@@ -1,15 +1,15 @@
 package com.kexon5.bot.bot.states;
 
 
-import com.kexon5.bot.statemachine.Buttonable;
 import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
+import com.kexon5.common.statemachine.Accessable;
 import lombok.Getter;
 
-import java.util.function.Function;
+import java.util.function.Predicate;
 
 @Getter
-public enum ActionState implements Buttonable {
+public enum ActionState implements Accessable {
     EDIT_HOSPITAL("✒️Отредактировать данные об ОПК", Role.ADMIN),
     ADD_HOSPITAL("➕Добавить ОПК", Role.ADMIN),
     CREATE_SCHEDULE("➕Создать расписание", Role.MAIN_HEAD),
@@ -25,17 +25,25 @@ public enum ActionState implements Buttonable {
 
     @Getter
     private final String buttonText;
-    private final Function<User, Boolean> accessPredicate;
+    private final Role accessRole;
 
     ActionState(String buttonText) {
-        this.buttonText = buttonText;
-        this.accessPredicate = user -> true;
+        this(buttonText, null);
     }
 
-    ActionState(String buttonText, Role role) {
+    ActionState(String buttonText, Role accessRole) {
         this.buttonText = buttonText;
-        this.accessPredicate = user -> user.getRoles().contains(role);
+        this.accessRole = accessRole;
     }
 
+    @Override
+    public Predicate<Long> hasAccess() {
+        return null;
+    }
+
+    @Override
+    public boolean hasAccess(User user) {
+        return accessRole == null || user.getRoles().contains(accessRole);
+    }
 }
 

@@ -17,16 +17,19 @@ import static com.kexon5.bot.utils.Utils.*;
 
 public class CheckOutUser extends ActionElement {
 
+    private final Predicate<Long> andPredicate;
+
     public CheckOutUser(ActionState actionState,
-                        Predicate<Long> predicate,
                         RepositoryService repositoryService) {
-        super(
-                actionState,
-                predicate,
-                CheckOutSteps.values()
-        );
+        super(actionState, CheckOutSteps.values());
 
         CheckOutSteps.repositoryService = repositoryService;
+        this.andPredicate = repositoryService::userHasActiveRecord;
+    }
+
+    @Override
+    public void setAccessPredicate(Predicate<Long> accessPredicate) {
+        super.setAccessPredicate(accessPredicate.and(andPredicate));
     }
 
     @RequiredArgsConstructor

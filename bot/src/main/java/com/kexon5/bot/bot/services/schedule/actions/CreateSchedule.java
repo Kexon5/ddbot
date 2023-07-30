@@ -9,14 +9,12 @@ import org.bson.Document;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 public class CreateSchedule extends ActionElement {
 
     public CreateSchedule(ActionState actionState,
-                          Predicate<Long> predicate,
                           RepositoryService repositoryService) {
-        super(actionState, predicate, CreateSteps.values());
+        super(actionState, CreateSteps.values());
 
         CreateSteps.repositoryService = repositoryService;
     }

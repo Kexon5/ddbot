@@ -1,11 +1,11 @@
 package com.kexon5.bot.bot.elements;
 
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.statemachine.Accessable;
-import com.kexon5.bot.statemachine.Buttonable;
-import com.kexon5.bot.statemachine.Element;
-import com.kexon5.bot.statemachine.MessageState;
 import com.kexon5.bot.utils.Utils;
+import com.kexon5.common.statemachine.Accessable;
+import com.kexon5.common.statemachine.Buttonable;
+import com.kexon5.common.statemachine.Element;
+import com.kexon5.common.statemachine.MessageState;
 import org.springframework.data.util.Pair;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -23,27 +23,26 @@ public abstract class AbstractServiceElement extends Element<ServiceState> imple
 
     protected final List<Pair<Predicate<Long>, InlineKeyboardButton>> buttons = new ArrayList<>();
 
-    protected AbstractServiceElement(ServiceState state) {
-        this(state, null);
+    protected AbstractServiceElement(ServiceState serviceState) {
+        super(serviceState);
     }
 
-    protected AbstractServiceElement(ServiceState serviceState,
-                                     @Nullable Predicate<Long> accessPredicate) {
-        super(serviceState, accessPredicate);
-    }
-
-    public abstract BotApiMethod<? extends Serializable> getMessage(Long userId,
+    public abstract BotApiMethod<? extends Serializable> getMessage(long userId,
                                                                     Integer msgId,
                                                                     @Nullable String userText);
 
-    public InlineKeyboardMarkup getFilteredMenu(long userId) {
-        return Utils.getMenu(buttons.stream()
-                                    .filter(b -> b.getFirst().test(userId))
-                                    .map(Pair::getSecond)
-                                    .toList());
+    protected List<InlineKeyboardButton> getButtons(long userId) {
+        return buttons.stream()
+                      .filter(b -> b.getFirst().test(userId))
+                      .map(Pair::getSecond)
+                      .toList();
     }
 
-    protected BotApiMethod<? extends Serializable> sendMessage(Long userId, String userText) {
+    public InlineKeyboardMarkup getFilteredMenu(long userId) {
+        return Utils.getMenu(getButtons(userId));
+    }
+
+    protected BotApiMethod<? extends Serializable> sendMessage(long userId, String userText) {
         return SendMessage.builder()
                           .chatId(userId)
                           .text(getAnswer(userId, userText))
@@ -52,7 +51,7 @@ public abstract class AbstractServiceElement extends Element<ServiceState> imple
                           .build();
     }
 
-    protected BotApiMethod<? extends Serializable> editMessage(Long userId, Integer msgId) {
+    protected BotApiMethod<? extends Serializable> editMessage(long userId, Integer msgId) {
         return EditMessageText.builder()
                               .chatId(userId)
                               .text(getAnswer(userId, null))

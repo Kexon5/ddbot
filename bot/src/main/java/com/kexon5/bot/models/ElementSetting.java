@@ -1,6 +1,7 @@
 package com.kexon5.bot.models;
 
 
+import com.kexon5.common.statemachine.Buttonable;
 import lombok.Getter;
 import lombok.Setter;
 import org.bson.types.ObjectId;
@@ -11,7 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Setter
 @Getter
 @Document(collection = "ELEMENT_SETTINGS")
-public class ElementSetting {
+public class ElementSetting implements Buttonable {
 
     public enum Type {
         ACTION,
@@ -40,6 +41,10 @@ public class ElementSetting {
     public ElementSetting inverseWorking() {
         working = !working;
         return this;
+    }
+
+    public String getButtonText() {
+        return elementName + ": " + (working ? "✅" : "❌");
     }
 
 }

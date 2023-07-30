@@ -66,6 +66,9 @@ public class User {
     @Field("ROLES")
     private Set<Role> roles;
 
+    @Field("SETTINGS")
+    private UserSettings userSettings;
+
 
     public String toShortString() {
         return name + ", Дата рождения: " + birthday + ", Роли: " + roles;
@@ -78,6 +81,10 @@ public class User {
 
     public void removeRecord(ObjectId recordId) {
         records.remove(records.size() - 1);
+    }
+
+    public boolean isNotificationEnabled() {
+        return userSettings.isNotificationEnabled();
     }
 
 }

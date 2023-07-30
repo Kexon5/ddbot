@@ -12,16 +12,14 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Predicate;
 
 import static com.kexon5.bot.utils.Utils.*;
 
 public class OpenRegistration extends ActionElement {
 
     public OpenRegistration(ActionState actionState,
-                            Predicate<Long> predicate,
                             RepositoryService repositoryService) {
-        super(actionState, predicate, OpenSteps.values());
+        super(actionState, OpenSteps.values());
 
         OpenRegistration.OpenSteps.repositoryService = repositoryService;
     }

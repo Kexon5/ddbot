@@ -10,18 +10,17 @@ import org.bson.Document;
 import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class AddHospital extends ActionElement {
 
     public AddHospital(ActionState actionState,
-                       Predicate<Long> predicate,
                        HospitalRepository hospitalRepository) {
-        super(actionState, predicate, AddSteps.values());
+        super(actionState, AddSteps.values());
 
         AddSteps.hospitalRepository = hospitalRepository;
     }
+
 
     public enum AddSteps implements ActionMessageState {
         PLACE_NAME {

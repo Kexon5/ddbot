@@ -1,17 +1,15 @@
-package com.kexon5.bot.statemachine;
+package com.kexon5.common.statemachine;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.telegram.abilitybots.api.db.DBContext;
 
-import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Predicate;
 
 @Getter
-public abstract class Element<T extends Buttonable> implements Accessable {
+public abstract class Element<T extends Accessable> implements Flowable {
 
     protected static final Map<Buttonable, Element<? extends Buttonable>> registry = new HashMap<>();
     @Setter
@@ -19,13 +17,18 @@ public abstract class Element<T extends Buttonable> implements Accessable {
 
     protected final T elementState;
 
-    private final Predicate<Long> accessPredicate;
+    @Setter
+    protected Predicate<Long> accessPredicate;
 
-    public Element(T state, @Nullable Predicate<Long> accessPredicate) {
+    public Element(T state) {
         this.elementState = state;
-        this.accessPredicate = accessPredicate;
 
         registry.put(state, this);
+    }
+
+    @Override
+    public String name() {
+        return elementState.name();
     }
 
     public String getButtonText() {
@@ -44,12 +47,8 @@ public abstract class Element<T extends Buttonable> implements Accessable {
 
     @Override
     public Predicate<Long> hasAccess() {
-        return Optional.ofNullable(accessPredicate)
-                       .map(accessPredicate -> accessPredicate.or(id -> {
-                           if (id < 400)
-                               return accessPredicate.test(825648974L);
-                           return false;
-                       }))
-                       .orElse(Accessable.super.hasAccess());
+        return accessPredicate != null
+                ? accessPredicate //.or(id -> id < 400 && accessPredicate.test(825648974L))
+                : Flowable.super.hasAccess();
     }
 }

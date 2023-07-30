@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kexon5.bot.utils.Utils.*;
@@ -26,9 +25,8 @@ import static com.kexon5.bot.utils.Utils.*;
 public class ReadSchedule extends ActionElement {
 
     public ReadSchedule(ActionState actionState,
-                        Predicate<Long> predicate,
                         RepositoryService repositoryService) {
-        super(actionState, predicate, ReadSteps.values());
+        super(actionState, ReadSteps.values());
 
         ReadSteps.repositoryService = repositoryService;
     }

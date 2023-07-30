@@ -23,16 +23,20 @@ import java.util.stream.Collectors;
 
 public class CheckInUser extends ActionElement {
 
+    private final Predicate<Long> andPredicate;
+
     public CheckInUser(ActionState actionState,
-                       Predicate<Long> predicate,
                        RepositoryService repositoryService) {
-        super(
-                actionState,
-                predicate,
-                CheckInSteps.values()
-        );
+        super(actionState, CheckInSteps.values());
 
         CheckInSteps.repositoryService = repositoryService;
+        this.andPredicate = userId -> !repositoryService.userHasActiveRecord(userId) && repositoryService.existOpenRecords();
+    }
+
+
+    @Override
+    public void setAccessPredicate(Predicate<Long> accessPredicate) {
+        super.setAccessPredicate(accessPredicate.and(andPredicate));
     }
 
     @RequiredArgsConstructor

@@ -1,9 +1,9 @@
 package com.kexon5.bot.bot.elements;
 
 import com.kexon5.bot.bot.states.ActionState;
-import com.kexon5.bot.statemachine.DialogueFlow;
-import com.kexon5.bot.statemachine.Element;
-import com.kexon5.bot.statemachine.MessageState;
+import com.kexon5.common.statemachine.DialogueFlow;
+import com.kexon5.common.statemachine.Element;
+import com.kexon5.common.statemachine.MessageState;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,6 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import static org.telegram.abilitybots.api.objects.Flag.CALLBACK_QUERY;
 import static org.telegram.abilitybots.api.objects.Flag.MESSAGE;
@@ -32,31 +31,23 @@ public class ActionElement extends Element<ActionState> {
 
     protected static final String USER_CONTEXT = "user_contexts";
 
-    private final ActionState actionState;
-
     @Setter
     public static Map<Long, Document> contextMap = new HashMap<>();
 
     private final ActionMessageState[] steps;
 
 
-    protected ActionElement(ActionState actionState, ActionMessageState[] steps) {
-        this(actionState, null, steps);
-    }
-
     protected ActionElement(ActionState actionState,
-                            @Nullable Predicate<Long> accessPredicate,
                             ActionMessageState[] steps) {
-        super(actionState, accessPredicate);
+        super(actionState);
 
-        this.actionState = actionState;
         this.steps = steps;
     }
 
     @Override
     public DialogueFlow.DialogueFlowBuilder setAdditional(DialogueFlow.DialogueFlowBuilder builder) {
         return builder
-                .onlyIf(upd -> CALLBACK_QUERY.test(upd) && upd.getCallbackQuery().getData().equals(actionState.name()));
+                .onlyIf(upd -> CALLBACK_QUERY.test(upd) && upd.getCallbackQuery().getData().equals(name()));
     }
 
     private Update createEmptyUpdate(Update update) {
