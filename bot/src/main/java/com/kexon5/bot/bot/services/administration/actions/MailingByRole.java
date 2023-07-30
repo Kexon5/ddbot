@@ -18,17 +18,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import static com.kexon5.bot.utils.Utils.*;
 
 public class MailingByRole extends ActionElement {
 
     public MailingByRole(ActionState actionState,
-                         Predicate<Long> predicate,
                          UserRepository userRepository,
                          MailingService mailingService) {
-        super(actionState, predicate, MailingSteps.values());
+        super(actionState, MailingSteps.values());
 
         MailingSteps.userRepository = userRepository;
         MailingSteps.mailingService = mailingService;

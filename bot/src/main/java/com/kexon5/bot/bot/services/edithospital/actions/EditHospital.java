@@ -18,7 +18,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Predicate;
 
 import static com.kexon5.bot.utils.Utils.YES;
 import static com.kexon5.bot.utils.Utils.YES_NO;
@@ -26,10 +25,9 @@ import static com.kexon5.bot.utils.Utils.YES_NO;
 public class EditHospital extends ActionElement {
 
     public EditHospital(ActionState actionState,
-                        Predicate<Long> predicate,
                         HospitalRepository hospitalRepository,
                         HospitalBackupRepository hospitalBackupRepository) {
-        super(actionState, predicate, EditSteps.values());
+        super(actionState, EditSteps.values());
 
         EditSteps.hospitalRepository = hospitalRepository;
         EditSteps.hospitalBackupRepository = hospitalBackupRepository;

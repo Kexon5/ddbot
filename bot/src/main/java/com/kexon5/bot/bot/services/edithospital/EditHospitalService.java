@@ -9,16 +9,14 @@ import com.kexon5.bot.utils.markup.MarkupList;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class EditHospitalService extends MenuElement {
 
     private final RepositoryService repositoryService;
 
     public EditHospitalService(ServiceState state,
-                               Predicate<Long> accessPredicate,
                                RepositoryService repositoryService) {
-        super(state, accessPredicate);
+        super(state);
 
         this.repositoryService = repositoryService;
     }

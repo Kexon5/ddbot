@@ -1,4 +1,4 @@
-package com.kexon5.bot.statemachine;
+package com.kexon5.common.statemachine;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

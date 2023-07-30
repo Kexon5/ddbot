@@ -1,19 +1,18 @@
 package com.kexon5.bot.bot.states;
 
 
-import com.kexon5.bot.statemachine.Buttonable;
 import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
+import com.kexon5.common.statemachine.Accessable;
 import lombok.Getter;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
 import static com.kexon5.bot.bot.states.ActionState.*;
 
 @Getter
-public enum ServiceState implements Buttonable {
+public enum ServiceState implements Accessable {
     EDIT_HOSPITALS_MENU(
             "✍🏻Редактирование ОПК",
             Role.ADMIN,
@@ -77,15 +76,19 @@ public enum ServiceState implements Buttonable {
     );
 
     private final String buttonText;
-    private final Function<User, Boolean> accessPredicate;
+    private final Role accessRole;
     private final List<ServiceState> servicesList;
     private final List<ActionState> actionsList;
 
     ServiceState(String buttonText, Role role, List<ServiceState> servicesList, List<ActionState> actionsList) {
         this.buttonText = buttonText;
-        this.accessPredicate = user -> user.getRoles().contains(role);
+        this.accessRole = role;
         this.servicesList = servicesList;
         this.actionsList = actionsList;
     }
 
+    @Override
+    public boolean hasAccess(User user) {
+        return user.getRoles().contains(accessRole);
+    }
 }

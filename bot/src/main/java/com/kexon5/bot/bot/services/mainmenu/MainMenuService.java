@@ -2,8 +2,8 @@ package com.kexon5.bot.bot.services.mainmenu;
 
 import com.kexon5.bot.bot.elements.MenuElement;
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.statemachine.DialogueFlow;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.statemachine.DialogueFlow;
 
 import javax.annotation.Nullable;
 

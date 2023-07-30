@@ -2,17 +2,26 @@ package com.kexon5.bot.bot.services.administration;
 
 import com.kexon5.bot.bot.elements.InteractiveMenuElement;
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.statemachine.ButtonReply;
+import com.kexon5.bot.models.ElementSetting;
+import com.kexon5.bot.repositories.ElementSettingRepository;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Predicate;
+
+import static com.kexon5.common.statemachine.ButtonFactoryUtils.buttonFactoryFromButtonable;
 
 public class ServiceSwitcher extends InteractiveMenuElement {
     public ServiceSwitcher(ServiceState serviceState,
-                           @Nullable Predicate<Long> accessPredicate,
-                           List<ButtonReply.ButtonReplyBuilder> buttonReplies) {
-        super(serviceState, accessPredicate, buttonReplies);
+                           ElementSettingRepository settingRepository) {
+        this(serviceState, settingRepository, settingRepository.getServiceSettings());
+    }
+
+    public ServiceSwitcher(ServiceState serviceState,
+                           ElementSettingRepository settingRepository,
+                           List<ElementSetting> serviceSettings) {
+        super(serviceState,
+              settingRepository.getBuilders(serviceSettings, serviceState),
+              buttonFactoryFromButtonable(serviceSettings));
     }
 
     @Override

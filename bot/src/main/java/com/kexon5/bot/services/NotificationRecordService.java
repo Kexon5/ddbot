@@ -36,7 +36,6 @@ public class NotificationRecordService {
         updateClosedRecords();
     }
 
-
     private void updateRecords(HospitalRecord.RecordState from,
                                HospitalRecord.RecordState to,
                                long hoursBreach,
@@ -55,6 +54,7 @@ public class NotificationRecordService {
 
             if (durationHours >= hoursBreach && durationHours < upperHoursBreach) {
                 userRepository.findAllById(record.getUsers()).stream()
+                              .filter(User::isNotificationEnabled)
                               .map(User::getUserId)
                               .map(id -> msgBuilder.chatId(id).build())
                               .forEach(msg -> sender.executeAsync(msg, c -> {}));

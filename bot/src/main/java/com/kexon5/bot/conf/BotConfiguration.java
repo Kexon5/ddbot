@@ -2,7 +2,6 @@ package com.kexon5.bot.conf;
 
 import com.kexon5.bot.bot.DDBot;
 import com.kexon5.bot.bot.services.mainmenu.MainMenuService;
-import com.kexon5.bot.conf.statemachine.ServiceConfiguration;
 import com.kexon5.bot.listeners.BotFinishListener;
 import com.kexon5.bot.listeners.BotStartListener;
 import com.kexon5.bot.services.MailingService;
@@ -10,7 +9,6 @@ import com.kexon5.bot.services.MethodUnicaster;
 import com.kexon5.common.models.ActiveEnvironment;
 import com.kexon5.common.repositories.ActiveEnvironmentRepository;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.abilitybots.api.db.DBContext;
@@ -19,7 +17,6 @@ import org.telegram.abilitybots.api.sender.SilentSender;
 import org.telegram.telegrambots.bots.DefaultBotOptions;
 
 @Configuration
-@AutoConfigureAfter(ServiceConfiguration.class)
 public class BotConfiguration  {
 
     @Bean
@@ -54,16 +51,15 @@ public class BotConfiguration  {
         return new MethodUnicaster();
     }
 
-    @Bean
+    @Bean(initMethod = "onRegister")
     public DDBot ddBot(@Value("${bot.username}") String botName,
                        DBContext dbContext,
                        DefaultBotOptions options,
+                       @Value("${creatorId:-1}") long creatorId,
                        ReplyCollection actionReplyCollection,
                        MainMenuService mainMenu,
                        MethodUnicaster methodUnicaster) {
-        DDBot bot = new DDBot(botName, options, dbContext, actionReplyCollection, mainMenu, methodUnicaster);
-        bot.onRegister();
-        return bot;
+        return new DDBot(botName, dbContext, options, creatorId, actionReplyCollection, mainMenu, methodUnicaster);
     }
 
     @Bean

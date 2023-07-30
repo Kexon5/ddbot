@@ -1,4 +1,4 @@
-package com.kexon5.bot.statemachine;
+package com.kexon5.common.statemachine;
 
 import org.telegram.abilitybots.api.bot.BaseAbilityBot;
 import org.telegram.abilitybots.api.db.DBContext;
@@ -183,10 +183,10 @@ public class DialogueFlow extends Reply {
             return this;
         }
 
-        public DialogueFlowBuilder next(ButtonReply buttonReply) {
-            List<Predicate<Update>> statefulConditions = toStateful(buttonReply.conditions(), buttonReply.name());
+        public DialogueFlowBuilder next(Reply reply) {
+            List<Predicate<Update>> statefulConditions = toStateful(reply.conditions(), reply.name());
 
-            DialogueFlow statefulDialogueFlow = new DialogueFlow(statefulConditions, buttonReply.action(), Collections.emptySet(), buttonReply.name());
+            DialogueFlow statefulDialogueFlow = new DialogueFlow(statefulConditions, reply.action(), Collections.emptySet(), reply.name());
             nextReplies.add(statefulDialogueFlow);
             return this;
         }

@@ -1,4 +1,4 @@
-package com.kexon5.bot.statemachine;
+package com.kexon5.common.statemachine;
 
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -25,18 +25,16 @@ public interface MessageState {
         );
     }
 
-    default BotApiMethod<? extends Serializable> getMessage(Long userId, Integer msgId, @Nullable String userText) {
+    default BotApiMethod<? extends Serializable> getMessage(long userId, Integer msgId, @Nullable String userText) {
         String answer = getAnswer(userId, userText);
-        if (answer != null) {
-            SendMessage.SendMessageBuilder builder = SendMessage.builder()
-                                                                .chatId(userId)
-                                                                .text(answer)
-                                                                .parseMode("Markdown");
-            setOptionsToBuilder(userId, builder);
-            return builder.build();
-        }
+        if (answer == null) return null;
 
-        return null;
+        SendMessage.SendMessageBuilder builder = SendMessage.builder()
+                                                            .chatId(userId)
+                                                            .text(answer)
+                                                            .parseMode("Markdown");
+        setOptionsToBuilder(userId, builder);
+        return builder.build();
     }
 
 
