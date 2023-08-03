@@ -9,7 +9,7 @@ import com.kexon5.bot.models.hospital.HospitalRecord;
 import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.common.models.User;
 import com.kexon5.common.repositories.UserRepository;
 import com.kexon5.common.statemachine.Accessable;
@@ -19,21 +19,16 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.kexon5.bot.models.hospital.Hospital.getSimpleStringList;
+import static com.kexon5.bot.utils.DateUtils.getCurrentDirectory;
 
 @RequiredArgsConstructor
 public class RepositoryService {
-
-    private static final int MONTH_FOR_SPRING_EVENT = 4;
-    private static final int MONTH_FOR_FALL_EVENT = 10;
 
     private final GoogleSettingsService googleSettingsService;
     private final HospitalRepository hospitalRepository;
@@ -45,17 +40,11 @@ public class RepositoryService {
     @Getter
     private GoogleSetting lastSchedule;
 
-    private static long getDaysBetween(LocalDate first, LocalDate second) {
-        return Duration.between(first.atStartOfDay(), second.atStartOfDay()).toDays();
-    }
 
     public GoogleSetting getSchedule() {
         if (lastSchedule != null) return lastSchedule;
 
-        LocalDate date = LocalDate.now();
-
-        long daysToSpringAct = getDaysBetween(date, LocalDate.of(date.getYear(), MONTH_FOR_SPRING_EVENT, 1));
-        String dirName = (daysToSpringAct > 0 ? "Весна'" : "Осень'") + date.getYear() % 100;
+        String dirName = getCurrentDirectory();
         String fileName = "Расписание выездов " + dirName;
 
         lastSchedule = Optional.ofNullable(googleSettingsService.getGoogleSetting(fileName)).orElseGet(() -> {
@@ -68,7 +57,7 @@ public class RepositoryService {
     }
 
     public ReplyKeyboardMarkup getTablesMarkup() {
-        return Utils.getReplyKeyboardMarkupBuilder(TableOption.valueList).build();
+        return ButtonUtils.getReplyKeyboardMarkupBuilder(TableOption.valueList).build();
     }
 
     public TableOption isTableOption(String userText) {
@@ -79,7 +68,8 @@ public class RepositoryService {
     }
 
     public boolean existOpenRecords() {
-        return hospitalRecordRepository.existsHospitalRecordByStateEquals(HospitalRecord.RecordState.OPEN);
+        return hospitalRecordRepository.findAllByStateEquals(HospitalRecord.RecordState.OPEN).stream()
+                                       .anyMatch(HospitalRecord::hasPlace);
     }
 
     public List<HospitalRecord> findAllHospitalRecordsByHash(Set<Integer> hashes) {
@@ -111,27 +101,18 @@ public class RepositoryService {
     public void checkInUser(HospitalRecord record, long userId) {
         userAction(userId, user -> {
             record.addUser(user);
-
-            if (!record.hasPlace()) record.setState(HospitalRecord.RecordState.CLOSED);
-
             saveRecord(record);
         });
     }
 
     public void fillSchedule(GoogleSetting fileSetting) {
-        String fileId = fileSetting.getGoogleId();
-        List<List<Object>> valuesList = getHospitalsDataForSchedule();
-
-        ValueRange values = new ValueRange()
-                .setValues(valuesList)
-                .setMajorDimension("COLUMNS");
-
-        try {
-            googleSettingsService.updateSheet(fileId, "Settings", values);
-            googleSettingsService.createPermissions(fileId, "writer", "anyone");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        googleSettingsService.updateSheet(
+                fileSetting.getGoogleId(),
+                "Settings",
+                new ValueRange()
+                        .setValues(getHospitalsDataForSchedule())
+                        .setMajorDimension("COLUMNS")
+        );
     }
 
     public Map<TableOption, List<HospitalRecord>> readTable(TableOption option) {

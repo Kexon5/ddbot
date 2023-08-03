@@ -20,6 +20,7 @@ import org.telegram.abilitybots.api.db.DBContext;
 import org.telegram.abilitybots.api.db.MapDBContext;
 import org.telegram.abilitybots.api.sender.SilentSender;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -75,8 +76,17 @@ public class CommonServiceConfiguration {
     @Bean
     public NotificationRecordService notificationRecordService(HospitalRecordRepository hospitalRecordRepository,
                                                                UserRepository userRepository,
-                                                               SilentSender sender) {
-        return new NotificationRecordService(hospitalRecordRepository, userRepository, sender);
+                                                               SilentSender sender,
+                                                               List<NotificationSubscriber> subscribers) {
+        var notificationRecordService = new NotificationRecordService(hospitalRecordRepository, userRepository, sender);
+        notificationRecordService.addSubscribers(subscribers);
+        return notificationRecordService;
+    }
+
+    @Bean
+    public DepartureTableMakerService createTableRecordsService(GoogleSettingsService googleSettingsService,
+                                                                UserRepository userRepository) {
+        return new DepartureTableMakerService(googleSettingsService, userRepository);
     }
 
 //    @Bean

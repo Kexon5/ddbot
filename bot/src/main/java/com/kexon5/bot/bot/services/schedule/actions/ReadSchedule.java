@@ -20,7 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.kexon5.bot.utils.Utils.*;
+import static com.kexon5.bot.utils.Constants.*;
+import static com.kexon5.bot.utils.HospitalUtils.fillStringBuilder;
 
 public class ReadSchedule extends ActionElement {
 

@@ -87,4 +87,12 @@ public class User {
         return userSettings.isNotificationEnabled();
     }
 
+    public String getTelegramLink() {
+        return "https://t.me/" + username;
+    }
+
+    public String getHyperlink() {
+        return String.format("=HYPERLINK(\"%s\"; \"%s\")", getTelegramLink(), name);
+    }
+
 }

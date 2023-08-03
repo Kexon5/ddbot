@@ -13,7 +13,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.kexon5.bot.utils.Utils.*;
+import static com.kexon5.bot.utils.Constants.*;
+import static com.kexon5.bot.utils.HospitalUtils.fillStringBuilder;
 
 public class OpenRegistration extends ActionElement {
 

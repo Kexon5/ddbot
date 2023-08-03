@@ -4,6 +4,7 @@ import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.model.File;
 import com.google.api.services.drive.model.Permission;
 import com.google.api.services.sheets.v4.Sheets;
+import com.google.api.services.sheets.v4.model.BatchUpdateValuesRequest;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.kexon5.bot.models.TableOption;
 import com.kexon5.bot.models.google.GoogleSetting;
@@ -12,9 +13,10 @@ import com.kexon5.bot.repositories.GoogleSettingRepository;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
-import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.kexon5.bot.utils.WrapUtils.wrapExceptionableCall;
 
 @Slf4j
 public class GoogleSettingsService {
@@ -24,7 +26,7 @@ public class GoogleSettingsService {
     private final Drive drive;
     private final Sheets sheets;
 
-    private String rootDirectory;
+    private String rootDirectoryId;
 
     public GoogleSettingsService(Drive drive,
                                  Sheets sheets,
@@ -35,7 +37,7 @@ public class GoogleSettingsService {
     }
 
     public void init() {
-        this.rootDirectory = getGoogleId(ROOT_DIRECTORY);
+        this.rootDirectoryId = getGoogleId(ROOT_DIRECTORY);
     }
 
     public GoogleSetting getGoogleSetting(String fileOrDirectoryName) {
@@ -55,14 +57,24 @@ public class GoogleSettingsService {
     }
 
     public GoogleSetting getFileSettingViaTemplate(String templateName, String dirName, String fileName) {
-        String dirId = checkOrCreateDirectory(dirName);
-        return createFileFromTemplate(templateName, fileName, dirId);
+        return getFileSettingViaTemplate(templateName, dirName, fileName, rootDirectoryId, true);
     }
 
-    public String checkOrCreateDirectory(String dirName) {
-        return Optional.ofNullable(getGoogleId(dirName))
-                .orElseGet(() -> this.createDirectory(dirName, rootDirectory));
+    public GoogleSetting getFileSettingViaTemplate(String templateName, String dirName, String fileName, String parentDir, boolean needToSave) {
+        String dirId = checkOrCreateDirectory(dirName, parentDir);
+        return createFileFromTemplate(templateName, fileName, dirId, needToSave);
     }
+
+
+    public String checkOrCreateDirectory(String dirName) {
+        return checkOrCreateDirectory(dirName, rootDirectoryId);
+    }
+
+    public String checkOrCreateDirectory(String dirName, String parentDir) {
+        return Optional.ofNullable(getGoogleId(dirName))
+                       .orElseGet(() -> this.createDirectory(dirName, parentDir));
+    }
+
 
     public String createDirectory(String directoryName, String parentFolder) {
         File fileMetadata = new File()
@@ -70,20 +82,15 @@ public class GoogleSettingsService {
                 .setParents(List.of(parentFolder))
                 .setMimeType("application/vnd.google-apps.folder");
 
-        File result = null;
-        try {
-            result = drive.files()
-                    .create(fileMetadata)
-                    .setFields("id, webViewLink")
-                    .execute();
-        } catch (Exception e) {
-            log.error("Folder wasn't created: {}", e.getMessage());
-        }
-        updateGoogleSettingsCollection(directoryName, result);
+        File result = wrapExceptionableCall(() -> drive.files()
+                                                       .create(fileMetadata)
+                                                       .setFields("id, webViewLink")
+                                                       .execute(), "Folder wasn't created:");
+        updateGoogleSettingsCollection(directoryName, result, true);
         return result.getId();
     }
 
-    public GoogleSetting createFileFromTemplate(String templateName, String fileName, String directoryId) {
+    public GoogleSetting createFileFromTemplate(String templateName, String fileName, String directoryId, boolean needToSave) {
         String templateId = getGoogleId(templateName);
         if (templateId == null) return null;
 
@@ -91,29 +98,31 @@ public class GoogleSettingsService {
                 .setParents(List.of(directoryId))
                 .setName(fileName);
 
-        try {
+        return wrapExceptionableCall(() -> {
             File result = drive.files()
-                    .copy(templateId, copiedFile)
-                    .setFields("id, webViewLink")
-                    .execute();
+                               .copy(templateId, copiedFile)
+                               .setFields("id, webViewLink")
+                               .execute();
 
-            return updateGoogleSettingsCollection(fileName, result);
-        } catch (IOException e) {
-            log.error("File wasn't created: {}", e.getMessage());
-            return null;
+            var googleSetting = updateGoogleSettingsCollection(fileName, result, needToSave);
+            if (googleSetting != null) {
+                createPermissions(googleSetting.getGoogleId(), "writer", "anyone");
+            }
+
+            return googleSetting;
+        }, "File wasn't created:");
+    }
+
+    public GoogleSetting updateGoogleSettingsCollection(String elementName, File file, boolean needToSave) {
+        if (file != null && file.getId() != null && file.getWebViewLink() != null) {
+            GoogleSetting newSetting = new GoogleSetting(elementName, file.getId(), file.getWebViewLink());
+            if (needToSave) {
+                googleSettingRepository.save(newSetting);
+            }
+            return newSetting;
         }
-    }
 
-    public GoogleSetting updateGoogleSettingsCollection(String elementName, File file) {
-        return file != null && file.getId() != null && file.getWebViewLink() != null
-                ? updateGoogleSettingsCollection(elementName, file.getId(), file.getWebViewLink())
-                : null;
-    }
-
-    public GoogleSetting updateGoogleSettingsCollection(String name, String id, String link) {
-        GoogleSetting newSetting = new GoogleSetting(name, id, link);
-        googleSettingRepository.save(newSetting);
-        return newSetting;
+        return null;
     }
 
     public Map<TableOption, List<HospitalRecord>> readTable(String sheetId, Set<TableOption> ranges) {
@@ -128,25 +137,31 @@ public class GoogleSettingsService {
 
     @Nullable
     public ValueRange readTable(String sheetId, String range) {
-        try {
-            return sheets.spreadsheets()
-                    .values()
-                    .get(sheetId, range)
-                    .execute();
-        } catch (Exception e) {
-            return null;
-        }
+        return wrapExceptionableCall(() -> sheets.spreadsheets()
+                                          .values()
+                                          .get(sheetId, range)
+                                          .execute());
     }
 
-    public void updateSheet(String fileId, String range, ValueRange valueRange) throws IOException {
-        sheets.spreadsheets()
-                .values()
-                .update(fileId, range, valueRange)
-                .setValueInputOption("RAW")
-                .execute();
+    public void updateSheet(String fileId, String range, ValueRange valueRange) {
+        wrapExceptionableCall(() -> sheets.spreadsheets()
+                                          .values()
+                                          .update(fileId, range, valueRange)
+                                          .setValueInputOption("RAW")
+                                          .execute());
     }
 
-    public void createPermissions(String fileId, String role, String typePermission) throws IOException {
-        drive.permissions().create(fileId, new Permission().setRole(role).setType(typePermission)).execute();
+    public void createPermissions(String fileId, String role, String typePermission) {
+        wrapExceptionableCall(() -> drive.permissions()
+                                         .create(fileId, new Permission().setRole(role).setType(typePermission))
+                                         .execute());
     }
+
+    public void batchUpdate(String sheetId, BatchUpdateValuesRequest request) {
+        wrapExceptionableCall(() -> sheets.spreadsheets()
+                                          .values()
+                                          .batchUpdate(sheetId, request)
+                                          .execute());
+    }
+
 }

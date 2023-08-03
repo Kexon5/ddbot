@@ -2,7 +2,7 @@ package com.kexon5.bot.bot.services.administration.actions;
 
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.bot.utils.markup.MarkupList;
 import com.kexon5.common.models.Role;
@@ -18,8 +18,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.kexon5.bot.utils.Utils.YES;
-import static com.kexon5.bot.utils.Utils.YES_NO;
+import static com.kexon5.bot.utils.Constants.YES;
+import static com.kexon5.bot.utils.Constants.YES_NO;
 import static com.kexon5.common.models.Role.rolesMap;
 
 public class GrantRoles extends ActionElement {
@@ -122,7 +122,7 @@ public class GrantRoles extends ActionElement {
                                                              .toList();
 
                 document.append(GRANT_ROLES, possibleGrantRoles);
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(possibleGrantRoles).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(possibleGrantRoles).build());
             }
 
             @Override

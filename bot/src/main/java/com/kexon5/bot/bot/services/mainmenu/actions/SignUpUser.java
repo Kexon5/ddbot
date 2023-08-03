@@ -3,7 +3,7 @@ package com.kexon5.bot.bot.services.mainmenu.actions;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 import static com.kexon5.bot.models.RegistrationConstants.bloodGroups;
 import static com.kexon5.bot.models.RegistrationConstants.factors;
-import static com.kexon5.bot.utils.Utils.*;
+import static com.kexon5.bot.utils.Constants.*;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
 public class SignUpUser extends ActionElement {
@@ -176,7 +176,7 @@ public class SignUpUser extends ActionElement {
         BLOOD_GROUP {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, @Nonnull Document userDocument) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(bloodGroups).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(bloodGroups).build());
             }
 
             @Override
@@ -194,7 +194,7 @@ public class SignUpUser extends ActionElement {
         RH_FACTOR {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, @Nonnull Document userDocument) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(factors).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(factors).build());
             }
 
             @Override
@@ -212,7 +212,7 @@ public class SignUpUser extends ActionElement {
         KELL_FACTOR {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, @Nonnull Document userDocument) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(factors).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(factors).build());
             }
 
             @Override

@@ -3,7 +3,7 @@ package com.kexon5.bot.bot.services.administration.actions;
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
 import com.kexon5.bot.services.MailingService;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
@@ -19,7 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
-import static com.kexon5.bot.utils.Utils.*;
+import static com.kexon5.bot.utils.Constants.*;
 
 public class MailingByRole extends ActionElement {
 
@@ -62,7 +62,7 @@ public class MailingByRole extends ActionElement {
                                                              .toList();
 
                 document.append(MAILING_ROLES, possibleMailingRoles);
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(possibleMailingRoles).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(possibleMailingRoles).build());
             }
 
             @Override
@@ -82,7 +82,7 @@ public class MailingByRole extends ActionElement {
 
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(List.of(NOW, ONE_HOUR)).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(List.of(NOW, ONE_HOUR)).build());
             }
 
             @Override

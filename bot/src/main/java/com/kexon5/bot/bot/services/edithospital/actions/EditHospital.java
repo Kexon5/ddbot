@@ -6,7 +6,7 @@ import com.kexon5.bot.models.hospital.Hospital;
 import com.kexon5.bot.models.hospital.HospitalBackup;
 import com.kexon5.bot.repositories.HospitalBackupRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.bot.utils.markup.MarkupList;
 import org.bson.Document;
@@ -19,8 +19,8 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
-import static com.kexon5.bot.utils.Utils.YES;
-import static com.kexon5.bot.utils.Utils.YES_NO;
+import static com.kexon5.bot.utils.Constants.YES;
+import static com.kexon5.bot.utils.Constants.YES_NO;
 
 public class EditHospital extends ActionElement {
 
@@ -169,7 +169,7 @@ public class EditHospital extends ActionElement {
         private static final String HOSPITALS = "HOSPITALS";
 
         private static final ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder SKIP_MENU_BUILDER =
-                Utils.getReplyKeyboardMarkupBuilder(List.of(SKIP));
+                ButtonUtils.getReplyKeyboardMarkupBuilder(List.of(SKIP));
 
 
         private static List<Hospital> getHospitals(Document userDocument) {
