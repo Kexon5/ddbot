@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="pooling,standard" />
     <module name="publisher" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="com.kexon5.publisher.PublisherApplication" />
-    <option name="VM_PARAMETERS" value="-Dspring.config.additional-location=../private/local.properties" />
+    <option name="VM_PARAMETERS" value="-Dspring.config.additional-location=../private/local.properties -Denv=dev" />
     <option name="WORKING_DIRECTORY" value="file://$MODULE_DIR$" />
     <method v="2">
       <option name="Make" enabled="true" />
