@@ -1,7 +1,7 @@
 package com.kexon5.bot.bot.elements;
 
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.common.statemachine.Accessable;
 import com.kexon5.common.statemachine.Buttonable;
 import com.kexon5.common.statemachine.Element;
@@ -39,7 +39,7 @@ public abstract class AbstractServiceElement extends Element<ServiceState> imple
     }
 
     public InlineKeyboardMarkup getFilteredMenu(long userId) {
-        return Utils.getMenu(getButtons(userId));
+        return ButtonUtils.getMenu(getButtons(userId));
     }
 
     protected BotApiMethod<? extends Serializable> sendMessage(long userId, String userText) {
@@ -62,11 +62,11 @@ public abstract class AbstractServiceElement extends Element<ServiceState> imple
     }
 
     protected static Pair<Predicate<Long>, InlineKeyboardButton> getButton(String callbackData, Buttonable actionState) {
-        return Pair.of(userId -> true, Utils.getButton(callbackData, actionState.getButtonText()));
+        return Pair.of(userId -> true, ButtonUtils.getButton(callbackData, actionState.getButtonText()));
     }
 
     protected static Pair<Predicate<Long>, InlineKeyboardButton> getSecuredButton(String callbackData, Accessable accessableElement) {
-        return Pair.of(accessableElement.hasAccess(), Utils.getButton(callbackData, accessableElement.getButtonText()));
+        return Pair.of(accessableElement.hasAccess(), ButtonUtils.getButton(callbackData, accessableElement.getButtonText()));
     }
 
 }

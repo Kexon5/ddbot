@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
 
-import static com.kexon5.bot.utils.Utils.*;
+import static com.kexon5.bot.utils.Constants.*;
 
 public class CheckOutUser extends ActionElement {
 

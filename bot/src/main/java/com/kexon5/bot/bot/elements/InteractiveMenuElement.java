@@ -2,7 +2,7 @@ package com.kexon5.bot.bot.elements;
 
 import com.google.common.collect.ImmutableList;
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.common.statemachine.ButtonReply;
 import com.kexon5.common.statemachine.DialogueFlow;
 import com.kexon5.common.statemachine.InteractiveButtonFactory;
@@ -58,10 +58,10 @@ public abstract class InteractiveMenuElement extends AbstractServiceElement {
 
     @Override
     public InlineKeyboardMarkup getFilteredMenu(long userId) {
-        return Utils.getMenu(ImmutableList.<InlineKeyboardButton>builder()
-                                          .addAll(getInteractiveButtons(userId))
-                                          .addAll(getButtons(userId))
-                                          .build()
+        return ButtonUtils.getMenu(ImmutableList.<InlineKeyboardButton>builder()
+                                                .addAll(getInteractiveButtons(userId))
+                                                .addAll(getButtons(userId))
+                                                .build()
         );
     }
 

@@ -4,7 +4,7 @@ import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
 import com.kexon5.bot.models.hospital.HospitalRecord;
 import com.kexon5.bot.services.RepositoryService;
-import com.kexon5.bot.utils.Utils;
+import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.bot.utils.markup.MarkupList;
 import lombok.RequiredArgsConstructor;
@@ -45,6 +45,7 @@ public class CheckInUser extends ActionElement {
             @Override
             public void initAction(long userId, Document userDocument) {
                 List<HospitalRecord> records = repositoryService.getAllRecords(HospitalRecord.RecordState.OPEN).stream()
+                                                                .filter(HospitalRecord::hasPlace)
                                                                 .toList();
 
                 userDocument.append(RECORDS_DOC, new Document(records.stream()
@@ -55,7 +56,7 @@ public class CheckInUser extends ActionElement {
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
                 Document recordsForMsg = document.get(RECORDS_DOC, Document.class);
 
-                builder.replyMarkup(Utils.getReplyKeyboardMarkupBuilder(recordsForMsg.keySet()).build());
+                builder.replyMarkup(ButtonUtils.getReplyKeyboardMarkupBuilder(recordsForMsg.keySet()).build());
             }
 
             @Override
@@ -88,10 +89,10 @@ public class CheckInUser extends ActionElement {
         SELECT_TIME {
             @Override
             public void setOptionsToBuilder(SendMessage.SendMessageBuilder builder, Document document) {
-                ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder builder1 = Utils.getReplyKeyboardMarkupBuilder(document.getList(
+                ReplyKeyboardMarkup.ReplyKeyboardMarkupBuilder builder1 = ButtonUtils.getReplyKeyboardMarkupBuilder(document.getList(
                                                                                                                               SELECT_HOSPITAL.name(), HospitalRecord.class).stream()
-                                                                                                                      .map(HospitalRecord::getDateTimeForButton)
-                                                                                                                      .toList());
+                                                                                                                            .map(HospitalRecord::getDateTimeForButton)
+                                                                                                                            .toList());
                 builder.replyMarkup(builder1.build());
             }
 
