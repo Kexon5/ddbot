@@ -1,7 +1,7 @@
 package com.kexon5.bot.bot.elements;
 
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.utils.ButtonUtils;
+import com.kexon5.common.utils.ButtonUtils;
 import com.kexon5.common.statemachine.Accessable;
 import com.kexon5.common.statemachine.Buttonable;
 import com.kexon5.common.statemachine.Element;
@@ -13,7 +13,6 @@ import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageTe
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 
-import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +25,6 @@ public abstract class AbstractServiceElement extends Element<ServiceState> imple
     protected AbstractServiceElement(ServiceState serviceState) {
         super(serviceState);
     }
-
-    public abstract BotApiMethod<? extends Serializable> getMessage(long userId,
-                                                                    Integer msgId,
-                                                                    @Nullable String userText);
 
     protected List<InlineKeyboardButton> getButtons(long userId) {
         return buttons.stream()

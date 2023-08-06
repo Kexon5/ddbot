@@ -13,17 +13,20 @@ import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 public class MainMenuService extends MenuElement {
 
     private final UserRepository userRepository;
+    private final String additionMsg;
 
     public MainMenuService(ServiceState state,
-                           UserRepository userRepository) {
+                           UserRepository userRepository,
+                           String env) {
         super(state);
 
         this.userRepository = userRepository;
+        this.additionMsg = env.equals("prod") ? "" : "\nТекущий env: " + env.toUpperCase();
     }
 
     @Override
     public String getAnswer(long userId, @Nullable String userText) {
-        return "Добро пожаловать, путник!";
+        return "Добро пожаловать, путник!" + additionMsg;
     }
 
     @Override

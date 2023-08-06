@@ -19,6 +19,7 @@ public enum ActionState implements Accessable {
     CHECK_OUT_USER("❌Отменить запись"),
     GRANT_ROLES("🔝Дать права пользователю", Role.ADMIN),
     MAILING_BY_ROLE("\uD83D\uDC8C Разослать сообщения", Role.HEAD),
+    CHANGE_ENVIRONMENT("Изменить env", Role.ADMIN),
     SIGN_UP_USER("TEST"),
 
     BACK( "🔙Назад");

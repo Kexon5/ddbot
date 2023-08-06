@@ -70,8 +70,8 @@ public class CommonServiceConfiguration {
     }
 
     @Bean
-    public DBContext dbContext() {
-        DBContext test = MapDBContext.offlineInstance("TEST");
+    public DBContext dbContext(@Value("${env:dev}") String env) {
+        DBContext test = MapDBContext.offlineInstance(env);
         Element.setDbContext(test);
         return test;
     }

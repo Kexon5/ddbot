@@ -2,12 +2,9 @@ package com.kexon5.bot.conf;
 
 import com.kexon5.bot.bot.DDBot;
 import com.kexon5.bot.bot.services.mainmenu.MainMenuService;
-import com.kexon5.bot.listeners.BotFinishListener;
-import com.kexon5.bot.listeners.BotStartListener;
-import com.kexon5.common.services.MailingService;
 import com.kexon5.bot.services.MethodUnicaster;
 import com.kexon5.common.models.ActiveEnvironment;
-import com.kexon5.common.repositories.ActiveEnvironmentRepository;
+import com.kexon5.common.services.MailingService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,22 +18,12 @@ public class BotConfiguration  {
 
     @Bean
     public ActiveEnvironment activeEnvironment(@Value("${env:dev}") String env) {
+        boolean isMain = env.equals("dev");
+
         return ActiveEnvironment.builder()
                                 .env(env)
-                                .isMain(true)
+                                .isMain(isMain)
                                 .build();
-    }
-
-    @Bean
-    public BotStartListener botStartListener(ActiveEnvironment activeEnvironment,
-                                             ActiveEnvironmentRepository activeEnvironmentRepository) {
-        return new BotStartListener(activeEnvironment, activeEnvironmentRepository);
-    }
-
-    @Bean
-    public BotFinishListener botFinishListener(ActiveEnvironment activeEnvironment,
-                                               ActiveEnvironmentRepository activeEnvironmentRepository) {
-        return new BotFinishListener(activeEnvironment, activeEnvironmentRepository);
     }
 
     @Bean

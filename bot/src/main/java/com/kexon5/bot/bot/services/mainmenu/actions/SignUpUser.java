@@ -3,7 +3,7 @@ package com.kexon5.bot.bot.services.mainmenu.actions;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
-import com.kexon5.bot.utils.ButtonUtils;
+import com.kexon5.common.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.common.models.Role;
 import com.kexon5.common.models.User;
@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 
 import static com.kexon5.bot.models.RegistrationConstants.bloodGroups;
 import static com.kexon5.bot.models.RegistrationConstants.factors;
-import static com.kexon5.bot.utils.Constants.*;
+import static com.kexon5.common.utils.Constants.*;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
 public class SignUpUser extends ActionElement {

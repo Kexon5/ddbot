@@ -12,15 +12,9 @@ import org.springframework.data.mongodb.core.mapping.Field;
 @Getter
 @Setter
 @Builder
-@Document(collection = "ACTIVE_ENVIRONMENTS")
 public class ActiveEnvironment {
 
-    @Id
-    private ObjectId id;
+    private final String env;
 
-    @Field("ENV")
-    private String env;
-
-    @Field("IS_MAIN")
-    private boolean isMain;
+    private final boolean isMain;
 }

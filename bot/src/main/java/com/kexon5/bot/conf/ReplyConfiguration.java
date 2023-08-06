@@ -15,6 +15,7 @@ import com.kexon5.bot.bot.services.edithospital.actions.EditHospital;
 import com.kexon5.bot.bot.services.hospital.HospitalService;
 import com.kexon5.bot.bot.services.hospital.actions.OpenRegistration;
 import com.kexon5.bot.bot.services.mainmenu.MainMenuService;
+import com.kexon5.bot.bot.services.mainmenu.actions.ChangeEnvironment;
 import com.kexon5.bot.bot.services.mainmenu.actions.CheckInUser;
 import com.kexon5.bot.bot.services.mainmenu.actions.CheckOutUser;
 import com.kexon5.bot.bot.services.mainmenu.actions.SignUpUser;
@@ -26,11 +27,12 @@ import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.HospitalBackupRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
-import com.kexon5.common.repositories.MailingGroupRepository;
-import com.kexon5.common.services.MailingService;
 import com.kexon5.bot.services.RepositoryService;
+import com.kexon5.common.repositories.MailingGroupRepository;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.services.MailingService;
 import com.kexon5.common.statemachine.DialogueFlow;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -73,7 +75,8 @@ public class ReplyConfiguration {
                                                  RepositoryService repositoryService,
                                                  HospitalRepository hospitalRepository,
                                                  HospitalBackupRepository hospitalBackupRepository,
-                                                 MailingService mailingService) {
+                                                 MailingService mailingService,
+                                                 @Value("${env:dev}") String env) {
         return new ReplyCollection(
                 Stream.of(new SignUpUser(SIGN_UP_USER, userRepository),
                           new CheckInUser(CHECK_IN_USER, repositoryService),
@@ -84,7 +87,8 @@ public class ReplyConfiguration {
                           new EditHospital(EDIT_HOSPITAL, hospitalRepository, hospitalBackupRepository),
                           new OpenRegistration(OPEN_REGISTRATION, repositoryService),
                           new GrantRoles(GRANT_ROLES, userRepository),
-                          new MailingByRole(MAILING_BY_ROLE, userRepository, mailingService)
+                          new MailingByRole(MAILING_BY_ROLE, userRepository, mailingService),
+                          new ChangeEnvironment(CHANGE_ENVIRONMENT, env)
                       )
                       .map(action -> repositoryService.fillAccessPredicate(action, ElementSetting.Type.ACTION))
                       .map(ActionElement::getReplyFlowBuilder)
@@ -95,8 +99,8 @@ public class ReplyConfiguration {
 
     @Bean
     @DependsOn("menuReplyCollection")
-    public MainMenuService mainMenu(UserRepository userRepository) {
-        return new MainMenuService(MAIN_MENU, userRepository);
+    public MainMenuService mainMenu(UserRepository userRepository, @Value("${env:dev}") String env) {
+        return new MainMenuService(MAIN_MENU, userRepository, env);
     }
 
 }

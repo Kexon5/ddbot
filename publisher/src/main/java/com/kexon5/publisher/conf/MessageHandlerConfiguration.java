@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Configuration
 public class MessageHandlerConfiguration {
@@ -28,43 +29,16 @@ public class MessageHandlerConfiguration {
     }
 
     @Bean
-    public UpdateHandler updateHandler(UpdateService updateService) {
-        return new UpdateHandler(updateService);
+    public Map<String, WebSocketHandler> handlers(UpdateService updateService) {
+        return Stream.of(new UpdateHandler(updateService),
+                         new MessageHandler(updateService, SendMessage.PATH),
+                         new MessageHandler(updateService, EditMessageText.PATH),
+                         new MessageHandler(updateService, DeleteMessage.PATH))
+                     .collect(Collectors.toMap(WebSocketHandlerWithName::getPath, Function.identity()));
     }
 
     @Bean
-    public MessageHandler sendMessageHandler(UpdateService updateService) {
-        return new MessageHandler(updateService, SendMessage.PATH);
-    }
-
-    @Bean
-    public MessageHandler editMessageHandler(UpdateService updateService) {
-        return new MessageHandler(updateService, EditMessageText.PATH);
-    }
-
-    @Bean
-    public MessageHandler deleteMessageHandler(UpdateService updateService) {
-        return new MessageHandler(updateService, DeleteMessage.PATH);
-    }
-
-
-    @Bean
-    public Map<String, WebSocketHandler> handlers(UpdateHandler updateHandler,
-                                                  MessageHandler sendMessageHandler,
-                                                  MessageHandler editMessageHandler,
-                                                  MessageHandler deleteMessageHandler) {
-        return Map.of("/updates", updateHandler,
-                      sendMessageHandler.getPath(), sendMessageHandler,
-                      editMessageHandler.getPath(), editMessageHandler,
-                      deleteMessageHandler.getPath(), deleteMessageHandler
-        );
-    }
-
-    @Bean
-    public HandlerMapping handlerMapping(List<WebSocketHandlerWithName> handlers) {
-        Map<String, WebSocketHandler> handlerMap = handlers.stream()
-                                                           .collect(Collectors.toMap(WebSocketHandlerWithName::getPath, Function.identity()));
-
-        return new SimpleUrlHandlerMapping(handlerMap, -1);
+    public HandlerMapping handlerMapping(Map<String, WebSocketHandler> handlers) {
+        return new SimpleUrlHandlerMapping(handlers, -1);
     }
 }
