@@ -1,5 +1,6 @@
-package com.kexon5.bot.services;
+package com.kexon5.common.services;
 
+import com.kexon5.common.repositories.MailingGroupRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -12,9 +13,15 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.TemporalUnit;
+import java.util.Set;
 
 @RequiredArgsConstructor
 public class MailingService {
+
+    public static final String NEW_TABLES = "NEW_TABLES";
+
+
+    private final MailingGroupRepository mailingGroupRepository;
 
     private final ThreadPoolTaskScheduler threadPoolTaskScheduler;
     @Setter
@@ -74,6 +81,20 @@ public class MailingService {
                 () -> sender.executeAsync(msg),
                 Duration.of(timeShift, temporalUnit)
         );
+    }
+
+
+    public void sendMsgs(String userGroup, String msgText) {
+        var userIds = mailingGroupRepository.findByGroupName(userGroup).getUsers();
+        sendMsgs(userIds, msgText);
+    }
+
+    public void sendMsgs(Set<Long> userIds, String msgText) {
+        var msgBuilder = SendMessage.builder()
+                                    .text(msgText)
+                                    .parseMode("Markdown");
+
+        userIds.forEach(userId -> sender.executeAsync(msgBuilder.chatId(userId).build(), c -> {}));
     }
 
 }

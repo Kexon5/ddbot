@@ -4,7 +4,7 @@ import com.kexon5.bot.bot.DDBot;
 import com.kexon5.bot.bot.services.mainmenu.MainMenuService;
 import com.kexon5.bot.listeners.BotFinishListener;
 import com.kexon5.bot.listeners.BotStartListener;
-import com.kexon5.bot.services.MailingService;
+import com.kexon5.common.services.MailingService;
 import com.kexon5.bot.services.MethodUnicaster;
 import com.kexon5.common.models.ActiveEnvironment;
 import com.kexon5.common.repositories.ActiveEnvironmentRepository;

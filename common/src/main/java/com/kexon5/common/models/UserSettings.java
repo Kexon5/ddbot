@@ -15,7 +15,8 @@ public class UserSettings {
 
     @Getter
     private static final List<Setting> defaultSettingsList = List.of(
-            new Setting("Получать уведомления")
+            new Setting("Получать уведомления"),
+            new Setting("Получать сообщения о новых выездах", false)
     );
 
     private List<Setting> settings;
@@ -36,8 +37,8 @@ public class UserSettings {
         return ButtonFactoryUtils.getButtons(settings, callBackData);
     }
 
-    public void changeSetting(int index) {
-        settings.get(index).inverseWork();
+    public boolean changeSetting(int index) {
+        return settings.get(index).inverseWork();
     }
 
     public static UserSettings getDefault() {

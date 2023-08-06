@@ -5,16 +5,18 @@ import com.google.api.services.sheets.v4.model.ValueRange;
 import com.kexon5.bot.models.google.GoogleSetting;
 import com.kexon5.bot.models.hospital.HospitalRecord;
 import com.kexon5.bot.utils.DateUtils;
+import com.kexon5.bot.utils.markup.MarkupList;
 import com.kexon5.common.models.User;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.services.MailingService;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import static com.kexon5.common.services.MailingService.NEW_TABLES;
+import static com.kexon5.common.utils.StringUtils.escape;
 
 @RequiredArgsConstructor
 public class DepartureTableMakerService implements NotificationSubscriber {
@@ -32,13 +34,29 @@ public class DepartureTableMakerService implements NotificationSubscriber {
 
     private final GoogleSettingsService googleService;
     private final UserRepository userRepository;
+    private final MailingService mailingService;
 
+
+    private String getMsgText(List<GoogleSetting> googleSettings) {
+        List<String> tables = googleSettings.stream()
+                                            .map(setting -> setting.getName() + " - " + escape(setting.getLink()))
+                                            .toList();
+
+
+        return "Привет!\n\nЯ тут сгенерировал списки выездов\n\n" +
+                new MarkupList<>(tables);
+    }
 
     @Override
     public void subscribe(List<HospitalRecord> records, LocalDate recordsDate) {
+        List<GoogleSetting> googleSettings = new ArrayList<>();
         records.stream()
                .collect(Collectors.groupingBy(HospitalRecord::getHospital, Collectors.toList()))
-               .forEach((hospital, recordList) -> createTable(hospital, recordsDate, recordList));
+               .forEach((hospital, recordList) -> Optional.ofNullable(createTable(hospital, recordsDate, recordList)).ifPresent(googleSettings::add));
+
+        if (!googleSettings.isEmpty()) {
+            mailingService.sendMsgs(NEW_TABLES, getMsgText(googleSettings));
+        }
     }
 
     @Override
@@ -62,13 +80,14 @@ public class DepartureTableMakerService implements NotificationSubscriber {
                 ));
     }
 
-
-    public void createTable(String hospital, LocalDate recordsDate, List<HospitalRecord> records) {
+    public GoogleSetting createTable(String hospital, LocalDate recordsDate, List<HospitalRecord> records) {
         records.sort(HospitalRecord::compareTo);
         List<List<Object>> data = new ArrayList<>();
 
         records.forEach(record -> {
             var users = userRepository.findAllById(record.getUsers());
+            if (users.isEmpty()) return;
+
             users.sort(Comparator.comparing(User::getName));
             String time = record.getDate().toLocalTime().toString();
             for (var user : users) {
@@ -80,10 +99,14 @@ public class DepartureTableMakerService implements NotificationSubscriber {
             data.add(Collections.emptyList());
         });
 
+        if (data.isEmpty()) return null;
+
         String fileName = String.format("%s (%s)", hospital, recordsDate.toString());
         String parentDirId = googleService.getGoogleId(DateUtils.getCurrentDirectory());
         GoogleSetting setting = googleService.getFileSettingViaTemplate(TEMPLATE_NAME, DIR_NAME, fileName, parentDirId, false);
         googleService.batchUpdate(setting.getGoogleId(), getUpdateRequest(data, hospital));
+
+        return setting;
     }
 
 }

@@ -39,7 +39,8 @@ public class NotificationRecordService {
     private final List<BiConsumer<List<HospitalRecord>, LocalDate>> closedSubscribers = new ArrayList<>();
 
 
-    @Scheduled(cron = "0 0 19 * * *")
+//    @Scheduled(cron = "0 * * * * *")
+        @Scheduled(cron = "0 0 19 * * *")
     public void scheduledUpdateRecords() {
         updateOpenRecords();
         updateClosedRecords();

@@ -9,14 +9,20 @@ import lombok.NoArgsConstructor;
 public class Setting implements Buttonable {
 
     private String settingText;
-    private boolean isEnabled = true;
+    private boolean isEnabled;
 
     public Setting(String settingText) {
-        this.settingText = settingText;
+        this(settingText, true);
     }
 
-    public void inverseWork() {
+    public Setting(String settingText, boolean isEnabled) {
+        this.settingText = settingText;
+        this.isEnabled = isEnabled;
+    }
+
+    public boolean inverseWork() {
         isEnabled = !isEnabled;
+        return isEnabled;
     }
 
     public String getButtonText() {
