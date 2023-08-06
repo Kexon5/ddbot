@@ -10,6 +10,8 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Optional;
 
+import static com.kexon5.common.utils.StringUtils.escape;
+
 public class CreateSchedule extends ActionElement {
 
     public CreateSchedule(ActionState actionState,
@@ -27,15 +29,6 @@ public class CreateSchedule extends ActionElement {
                 userDocument.append(LINK, repositoryService.getSchedule().getLink());
             }
 
-            @Nullable
-            private static String escape(String text) {
-                return text != null
-                        ? text.replace("_", "\\_")
-                              .replace("*", "\\*")
-                              .replace("[", "\\[")
-                              .replace("`", "\\`")
-                        : null;
-            }
 
             @Override
             public String getAnswer(@Nullable String userText, @Nonnull Document userDocument) {

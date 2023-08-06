@@ -2,7 +2,7 @@ package com.kexon5.bot.bot.services.administration.actions;
 
 import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
-import com.kexon5.bot.services.MailingService;
+import com.kexon5.common.services.MailingService;
 import com.kexon5.bot.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.common.models.Role;

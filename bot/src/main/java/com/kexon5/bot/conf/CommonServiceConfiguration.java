@@ -10,7 +10,9 @@ import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
 import com.kexon5.bot.services.*;
 import com.kexon5.common.models.ActiveEnvironment;
+import com.kexon5.common.repositories.MailingGroupRepository;
 import com.kexon5.common.repositories.UserRepository;
+import com.kexon5.common.services.MailingService;
 import com.kexon5.common.statemachine.Element;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -62,8 +64,9 @@ public class CommonServiceConfiguration {
     }
 
     @Bean
-    public MailingService taskManager(ThreadPoolTaskScheduler threadPoolTaskScheduler) {
-        return new MailingService(threadPoolTaskScheduler);
+    public MailingService taskManager(MailingGroupRepository mailingGroupRepository,
+                                      ThreadPoolTaskScheduler threadPoolTaskScheduler) {
+        return new MailingService(mailingGroupRepository, threadPoolTaskScheduler);
     }
 
     @Bean
@@ -85,8 +88,9 @@ public class CommonServiceConfiguration {
 
     @Bean
     public DepartureTableMakerService createTableRecordsService(GoogleSettingsService googleSettingsService,
-                                                                UserRepository userRepository) {
-        return new DepartureTableMakerService(googleSettingsService, userRepository);
+                                                                UserRepository userRepository,
+                                                                MailingService mailingService) {
+        return new DepartureTableMakerService(googleSettingsService, userRepository, mailingService);
     }
 
 //    @Bean

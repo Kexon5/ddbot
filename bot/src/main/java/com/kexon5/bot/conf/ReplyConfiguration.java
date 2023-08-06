@@ -26,7 +26,8 @@ import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.HospitalBackupRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
-import com.kexon5.bot.services.MailingService;
+import com.kexon5.common.repositories.MailingGroupRepository;
+import com.kexon5.common.services.MailingService;
 import com.kexon5.bot.services.RepositoryService;
 import com.kexon5.common.repositories.UserRepository;
 import com.kexon5.common.statemachine.DialogueFlow;
@@ -49,14 +50,15 @@ public class ReplyConfiguration {
     public ReplyCollection menuReplyCollection(UserRepository userRepository,
                                                RepositoryService repositoryService,
                                                ElementSettingRepository settingRepository,
-                                               HospitalRecordRepository hospitalRecordRepository) {
+                                               HospitalRecordRepository hospitalRecordRepository,
+                                               MailingGroupRepository mailingGroupRepository) {
         Stream.of(new HospitalService(HOSPITALS_MENU),
                   new EditHospitalService(EDIT_HOSPITALS_MENU, repositoryService),
                   new AdministrationService(ADMINISTRATION_MENU),
                   new ScheduleService(SCHEDULE_MENU),
                   new ServiceSwitcher(SERVICE_SWITCHER_MENU, settingRepository),
                   new ActionSwitcher(ACTION_SWITCHER_MENU, settingRepository),
-                  new AccountSettingsSwitcher(ACCOUNT_SETTINGS_SWITCHER, userRepository),
+                  new AccountSettingsSwitcher(ACCOUNT_SETTINGS_SWITCHER, userRepository, mailingGroupRepository),
                   new AccountRecordService(ACCOUNT_RECORD_MENU, userRepository, hospitalRecordRepository),
                   new AccountService(ACCOUNT_MENU)
               )
