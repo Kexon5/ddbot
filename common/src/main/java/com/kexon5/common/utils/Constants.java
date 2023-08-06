@@ -1,10 +1,12 @@
-package com.kexon5.bot.utils;
+package com.kexon5.common.utils;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 
 import java.util.List;
 
 public class Constants {
+
+    public static final List<String> envs = List.of("prod", "uat", "dev");
 
     public static final String YES = "Да";
     public static final String NO = "Нет";

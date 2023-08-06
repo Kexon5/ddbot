@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.telegram.abilitybots.api.bot.BaseAbilityBot;
 import org.telegram.telegrambots.meta.api.methods.BotApiMethod;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
@@ -20,6 +21,7 @@ import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 
 import static org.telegram.abilitybots.api.objects.Flag.CALLBACK_QUERY;
 import static org.telegram.abilitybots.api.objects.Flag.MESSAGE;
@@ -63,12 +65,16 @@ public class ActionElement extends Element<ActionState> {
         return newUpdate;
     }
 
+    public BiConsumer<BaseAbilityBot, Update> postAction() {
+        return (bot, upd) -> bot.onUpdateReceived(createEmptyUpdate(upd));
+    }
+
     @Override
     public DialogueFlow.DialogueFlowBuilder createReplyFlow() {
         Map<String, DialogueFlow.DialogueFlowBuilder> jumpMap = new HashMap<>();
 
         DialogueFlow.DialogueFlowBuilder workingBuilder = DialogueFlow.builder(dbContext)
-                                                                    .postAction((bot, upd) -> bot.onUpdateReceived(createEmptyUpdate(upd)));
+                                                                    .postAction(postAction());
 
         for (int i = steps.length - 1; i >= 1; i--) {
             int finalI = i;

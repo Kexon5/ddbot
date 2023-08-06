@@ -62,8 +62,8 @@ public abstract class MenuElement extends AbstractServiceElement {
     }
 
     @Override
-    public BotApiMethod<? extends Serializable> getMessage(long userId, Integer msgId, @Nullable String userText) {
-        return userText != null || msgId == null
+    public BotApiMethod<? extends Serializable> getMessage(long userId, Integer msgId, @Nullable String userText, boolean isChangeEnv) {
+        return userText != null || msgId == null || isChangeEnv
                 ? sendMessage(userId, userText)
                 : editMessage(userId, msgId);
     }

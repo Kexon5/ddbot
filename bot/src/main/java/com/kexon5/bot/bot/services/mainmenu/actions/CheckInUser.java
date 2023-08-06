@@ -4,7 +4,7 @@ import com.kexon5.bot.bot.elements.ActionElement;
 import com.kexon5.bot.bot.states.ActionState;
 import com.kexon5.bot.models.hospital.HospitalRecord;
 import com.kexon5.bot.services.RepositoryService;
-import com.kexon5.bot.utils.ButtonUtils;
+import com.kexon5.common.utils.ButtonUtils;
 import com.kexon5.bot.utils.markup.BoldString;
 import com.kexon5.bot.utils.markup.MarkupList;
 import lombok.RequiredArgsConstructor;

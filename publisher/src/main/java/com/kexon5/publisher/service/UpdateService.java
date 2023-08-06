@@ -1,14 +1,15 @@
 package com.kexon5.publisher.service;
 
 import lombok.Setter;
-import org.apache.commons.lang3.tuple.Pair;
 import org.telegram.abilitybots.api.sender.SilentSender;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import reactor.core.publisher.Flux;
 
 import java.util.*;
 
+import static org.telegram.abilitybots.api.objects.Flag.CALLBACK_QUERY;
 import static org.telegram.abilitybots.api.util.AbilityUtils.getChatId;
 
 public abstract class UpdateService {
@@ -53,14 +54,21 @@ public abstract class UpdateService {
         env2UpdateUnicast.remove(env);
     }
 
-
     public String getUserEnv(Update update) {
-        return user2Env.getOrDefault(getChatId(update), mainEnv);
+        long userId = getChatId(update);
+        if (CALLBACK_QUERY.test(update) && env2UpdateUnicast.containsKey(update.getCallbackQuery().getData())) {
+            setUserSpecificEnv(userId, update.getCallbackQuery().getData().toLowerCase());
+            sender.execute(DeleteMessage.builder()
+                                        .chatId(userId)
+                                        .messageId(update.getCallbackQuery().getMessage().getMessageId())
+                                        .build());
+        }
+
+        return user2Env.getOrDefault(userId, mainEnv);
     }
 
-    public boolean setUserSpecificEnv(Pair<Long, String> update) {
-        return env2UpdateUnicast.containsKey(update.getRight())
-                && user2Env.put(update.getKey(), update.getRight()) == null;
+    public boolean setUserSpecificEnv(long userId, String env) {
+        return user2Env.put(userId, env) == null;
     }
 
     public void envAvailable(long id) {

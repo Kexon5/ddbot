@@ -1,4 +1,4 @@
-package com.kexon5.bot.utils;
+package com.kexon5.common.utils;
 
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
@@ -28,8 +28,6 @@ public class ButtonUtils {
                                                     .toList())
                                    .build();
     }
-
-
 
     public static InlineKeyboardButton getButton(String callbackData, String text) {
         return InlineKeyboardButton.builder()

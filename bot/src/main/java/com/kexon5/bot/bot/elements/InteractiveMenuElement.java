@@ -2,7 +2,7 @@ package com.kexon5.bot.bot.elements;
 
 import com.google.common.collect.ImmutableList;
 import com.kexon5.bot.bot.states.ServiceState;
-import com.kexon5.bot.utils.ButtonUtils;
+import com.kexon5.common.utils.ButtonUtils;
 import com.kexon5.common.statemachine.ButtonReply;
 import com.kexon5.common.statemachine.DialogueFlow;
 import com.kexon5.common.statemachine.InteractiveButtonFactory;
@@ -46,7 +46,7 @@ public abstract class InteractiveMenuElement extends AbstractServiceElement {
     }
 
     @Override
-    public BotApiMethod<? extends Serializable> getMessage(long userId, Integer msgId, @Nullable String userText) {
+    public BotApiMethod<? extends Serializable> getMessage(long userId, Integer msgId, @Nullable String userText, boolean isChangeEnv) {
         return editMessage(userId, msgId);
     }
 

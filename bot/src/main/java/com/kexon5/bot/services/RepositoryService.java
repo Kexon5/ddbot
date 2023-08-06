@@ -9,7 +9,7 @@ import com.kexon5.bot.models.hospital.HospitalRecord;
 import com.kexon5.bot.repositories.ElementSettingRepository;
 import com.kexon5.bot.repositories.HospitalRecordRepository;
 import com.kexon5.bot.repositories.HospitalRepository;
-import com.kexon5.bot.utils.ButtonUtils;
+import com.kexon5.common.utils.ButtonUtils;
 import com.kexon5.common.models.User;
 import com.kexon5.common.repositories.UserRepository;
 import com.kexon5.common.statemachine.Accessable;

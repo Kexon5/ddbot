@@ -72,7 +72,7 @@ public enum ServiceState implements Accessable {
             "🏡Вернуться в главное меню",
             Role.DONOR,
             List.of(HOSPITALS_MENU, SCHEDULE_MENU, ADMINISTRATION_MENU, ACCOUNT_MENU),
-            List.of(CHECK_IN_USER, CHECK_OUT_USER, SIGN_UP_USER)
+            List.of(CHECK_IN_USER, CHECK_OUT_USER, CHANGE_ENVIRONMENT, SIGN_UP_USER)
     );
 
     private final String buttonText;
